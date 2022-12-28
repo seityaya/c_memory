@@ -16,9 +16,9 @@
 #include "yaya_memory.h"
 
 
-bool memory_fill(void *ptr, int z);
+bool memory_fill(void *ptr);
 
-bool memory_fill(void *ptr, int z){
+bool memory_fill(void *ptr){
     /*Проверка, что указатель не NULL*/
     if(ptr == NULL){
         printf("ERROR *POINTER\n"); fflush(stdout);
@@ -34,10 +34,10 @@ bool memory_fill(void *ptr, int z){
     size_t produce = malloc_usable_size(mem);
 
     /*Заполнение памяти*/
-    memset(mem->memory_ptr, z, produce - offsetof(mem_info_t, memory_ptr));
-    memset(mem->memory_ptr, 0x99, 1);
-    memset(&mem->memory_ptr[mem->memory_request - 1], 0xFF, 1);
-    memset(&mem->memory_ptr[produce - offsetof(mem_info_t, memory_ptr) - 1], 0x99, 1);
+    memset(mem->memory_ptr, 0x11, produce - offsetof(mem_info_t, memory_ptr));
+    memset(mem->memory_ptr, 0xff, 1);
+    memset(&mem->memory_ptr[mem->memory_request - 1], 0xff, 1);
+    memset(&mem->memory_ptr[produce - offsetof(mem_info_t, memory_ptr) - 1], 0x88, 1);
 
     return true;
 }
@@ -115,101 +115,22 @@ void test_param() {
 int main() {
 
     void *ptr = NULL;
-    mem_new(&ptr, ptr, 25);
-    memory_dump(ptr);
 
-    memory_fill(ptr, 0x12);
-    memory_dump(ptr);
+    mem_new(&ptr, ptr, 31);
+    memory_dump(ptr, 0, 1, 16);
 
-    printf("\n\n");
+    memory_fill(ptr);
+    memory_dump(ptr, 0, 2, 8);
 
-    return 0;
+    memory_fill(ptr);
+    memory_dump(ptr, 0, 4, 4);
+
 
     mem_new(&ptr, ptr, 30);
-    memory_dump(ptr);
-    memory_fill(ptr, 0x11);
-    memory_dump(ptr);
-    printf("\n\n");
+    mem_dump(ptr);
+    memory_fill(ptr);
 
-    mem_new(&ptr, ptr, 40);
-    memory_dump(ptr);
-    memory_fill(ptr, 0x11);
-    memory_dump(ptr);
-    printf("\n\n");
-
-    mem_new(&ptr, ptr, 30);
-    memory_dump(ptr);
-    memory_fill(ptr, 0x11);
-    memory_dump(ptr);
-    printf("\n\n");
-
-    return 0;
-
-    mem_new(&ptr, ptr, 2);
-    //memory_table_print(ptr);
-    memory_fill(ptr, 0x11);
-    //memory_table_print(ptr);
-
-
-    mem_new(&ptr, ptr, 1);
-    memory_fill(ptr, 0x11);
-    //memory_table_print(ptr);
-
-    mem_new(&ptr, ptr, 10);
-    //memory_table_print(ptr);
-
-    mem_new(&ptr, ptr, 30);
-    //memory_table_print(ptr);
-
-    memory_fill(ptr, 0x11);
-    //memory_table_print(ptr);
-
-    mem_new(&ptr, ptr, 20);
-    //memory_table_print(ptr);
-
-    memory_fill(ptr, 0x11);
-    //memory_table_print(ptr);
-
-    mem_new(&ptr, ptr, 20);
-    //memory_table_print(ptr);
-
-
-    mem_del(&ptr);
-
-    //memory_table_print(ptr);
-
-
-    mem_new(&ptr, ptr, 10);
-
-    //memory_table_print(ptr);
-
-    memory_fill(ptr, 0x11);
-    mem_new(&ptr, ptr, 500);
-
-    //memory_table_print(ptr);
-
-    memory_fill(ptr, 0x11);
-    mem_new(&ptr, ptr, 10);
-
-    //memory_table_print(ptr);
-
-    memory_fill(ptr, 0x11);
-    mem_new(&ptr, ptr, 15);
-
-    //memory_table_print(ptr);
-
-    memory_fill(ptr, 0x11);
-    mem_new(&ptr, ptr, 25);
-
-    //memory_table_print(ptr);
-
-    memory_fill(ptr, 0x11);
-    mem_del(&ptr);
-
-    //memory_table_print(ptr);
-
-    memory_stats_free(&mem_stats);
-    //memory_table_print(ptr);
+    mem_dump(ptr);
 
     return 0;
 }

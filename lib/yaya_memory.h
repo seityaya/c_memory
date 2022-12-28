@@ -17,13 +17,14 @@
 #endif
 
 #if USE_MEMORY_STATS
-#define mem_new(S, N, O, s) yaya_memory_new((S), (void**)(N), (void*)(O), (s))
-#define mem_del(S, N)       yaya_memory_del((S), (void**)(N))
+#define mem_new(S, N, O, s) memory_new((S), (void**)(N), (void*)(O), (s))
+#define mem_del(S, N)       memory_del((S), (void**)(N))
 #else
 #define mem_new(N, O, s) memory_new(NULL, (void**)(N), (void*)(O), (s))
 #define mem_del(N)       memory_del(NULL, (void**)(N))
-#endif
+#endif /*USE_MEMORY_STATS*/
 
+#define mem_dump(P)      memory_dump(P, 0, 1, 16)
 #define mem_size(P)      memory_size((void*)(P))
 
 typedef struct mem_stats_t {
@@ -38,7 +39,7 @@ typedef struct mem_stats_t {
 typedef struct mem_info_t {
     size_t memory_request;
     size_t memory_produce;
-    int8_t memory_ptr[];
+    uint8_t memory_ptr[];
 }mem_info_t;
 
 #if USE_MEMORY_STATS
@@ -54,7 +55,7 @@ bool memory_stats_print(mem_stats_t *mem_stats);
 bool   memory_new(mem_stats_t *mem_stats, void **ptr, void *old_ptr, const size_t new_size_len);
 bool   memory_del(mem_stats_t *mem_stats, void **ptr);
 size_t memory_size(void *ptr);
-bool  memory_dump_(void *ptr, size_t len, uint catbyte, uint column, bool ascii);
+bool memory_dump(void *ptr, size_t len, uint catbyte, uint column_mod2);
 
-#define memory_dump(a) memory_dump_( a, 0, 1, 16, 0)
+
 #endif // YAYA_MEMORY_H
