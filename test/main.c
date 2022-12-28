@@ -5,12 +5,13 @@
 //SPDX-License-Identifier: LGPL-2.1-or-later
 //Copyright © 2022-2022 Seityagiya Terlekchi. All rights reserved.
 
-#include <stdio.h>
+#include "stdio.h"
 #include "malloc.h"
 #include "string.h"
 #include "stdio.h"
 #include "inttypes.h"
 #include "stddef.h"
+
 
 #define USE_MEMORY_STATS 0
 #include "yaya_memory.h"
@@ -112,25 +113,29 @@ void test_param() {
     }
 }
 
-int main() {
-
+void test_dump(){
     void *ptr = NULL;
 
-    mem_new(&ptr, ptr, 31);
+    mem_new(&ptr, ptr, 16);
     memory_dump(ptr, 0, 1, 16);
 
-    memory_fill(ptr);
-    memory_dump(ptr, 0, 2, 8);
+    mem_new(&ptr, ptr, 17);
+    memory_dump(ptr, 0, 1, 16);
 
+    mem_new(&ptr, ptr, 33);
     memory_fill(ptr);
     memory_dump(ptr, 0, 4, 4);
 
-
     mem_new(&ptr, ptr, 30);
     mem_dump(ptr);
-    memory_fill(ptr);
 
+    memory_fill(ptr);
     mem_dump(ptr);
+}
+
+int main() {
+    test_param();
+    test_dump();
 
     return 0;
 }

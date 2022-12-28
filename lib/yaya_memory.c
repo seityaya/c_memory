@@ -5,7 +5,9 @@
 //SPDX-License-Identifier: LGPL-2.1-or-later
 //Copyright © 2022-2022 Seityagiya Terlekchi. All rights reserved.
 
+#define USE_MEMORY_STATS 1
 #include "yaya_memory.h"
+
 #include "malloc.h"
 #include "string.h"
 #include "stdio.h"
@@ -38,7 +40,7 @@ bool memory_stats_free(mem_stats_t **mem_stats){
     }
     return false;
 }
-bool memory_stats_print(mem_stats_t *mem_stats){
+bool memory_stats_show(mem_stats_t *mem_stats){
     if(mem_stats != NULL){
         printf("Request:% 10" PRIiMAX "; ",   mem_stats->memory_request);
         printf("Produce:% 10" PRIiMAX "; ",   mem_stats->memory_produce);
@@ -284,9 +286,15 @@ L1: ;
                     for(uintmax_t l = j; l < catbyte; l++){
                         printf("%02" PRIx8 "", nadr[m]);
                         m++;
+
+                        if(m == len){
+                            j = l+1;
+                            goto L2;
+                        }
                     }
                 }else{
-                    for(uintmax_t j = 0; j < catbyte; j++){
+L2: ;
+                    for(uintmax_t l = j; l < catbyte; l++){
                         printf("..");
                     }
                 }
