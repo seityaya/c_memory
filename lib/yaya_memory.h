@@ -10,31 +10,30 @@
 
 #include "stdint.h"
 #include "stdbool.h"
-#include "stdlib.h"
 
 #ifndef USE_MEMORY_STATS
 #define USE_MEMORY_STATS 0
 #endif
 
 typedef struct mem_stats_t {
-    size_t   memory_request;  //запросил
-    size_t   memory_produce;  //выдали
-    size_t   memory_release;  //освободил
+    intptr_t memory_request;  //запросил
+    intptr_t memory_produce;  //выдали
+    intptr_t memory_release;  //освободил
     intmax_t memory_call_new; //фактически выдано
     intmax_t memory_call_res; //фактически перераспределено
     intmax_t memory_call_del; //фактически удалено
 }mem_stats_t;
 
 typedef struct mem_info_t {
-    size_t memory_request;
-    size_t memory_produce;
-    uint8_t memory_ptr[];
+    intptr_t memory_request;
+    intptr_t memory_produce;
+    uint8_t  memory_ptr[];
 }mem_info_t;
 
 bool   memory_new(mem_stats_t *mem_stats, void **ptr, void *old_ptr, const size_t new_size_len);
 bool   memory_del(mem_stats_t *mem_stats, void **ptr);
 size_t memory_size(void *ptr);
-bool   memory_dump(void *ptr, size_t len, uint catbyte, uint column_mod2);
+bool   memory_dump(void *ptr, size_t len, uintmax_t catbyte, uintmax_t column_mod2);
 
 #if USE_MEMORY_STATS
 bool memory_stats_init(mem_stats_t **mem_stats);

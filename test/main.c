@@ -6,18 +6,13 @@
 //Copyright © 2022-2022 Seityagiya Terlekchi. All rights reserved.
 
 #include "stdio.h"
-#include "malloc.h"
-#include "string.h"
-#include "stdio.h"
 #include "inttypes.h"
+#include "malloc.h"
 #include "stddef.h"
-
+#include "string.h"
 
 #define USE_MEMORY_STATS 0
 #include "yaya_memory.h"
-
-
-bool memory_fill(void *ptr);
 
 bool memory_fill(void *ptr){
     /*Проверка, что указатель не NULL*/
@@ -38,7 +33,7 @@ bool memory_fill(void *ptr){
     memset(mem->memory_ptr, 0x11, produce - offsetof(mem_info_t, memory_ptr));
     memset(mem->memory_ptr, 0xff, 1);
     memset(&mem->memory_ptr[mem->memory_request - 1], 0xff, 1);
-    memset(&mem->memory_ptr[produce - offsetof(mem_info_t, memory_ptr) - 1], 0x88, 1);
+    memset(&mem->memory_ptr[mem->memory_request], 0x88, produce - mem->memory_request - offsetof(mem_info_t, memory_ptr));
 
     return true;
 }
@@ -122,15 +117,30 @@ void test_dump(){
     mem_new(&ptr, ptr, 17);
     memory_dump(ptr, 0, 1, 16);
 
+    printf("\n");
+
+    mem_new(&ptr, ptr, 42);
+    mem_dump(ptr);
+
+    memory_fill(ptr);
+    mem_dump(ptr);
+
+    mem_new(&ptr, ptr, 35);
+    mem_dump(ptr);
+
+    memory_fill(ptr);
+    mem_dump(ptr);
+
+    printf("\n");
+
     mem_new(&ptr, ptr, 33);
     memory_fill(ptr);
-    memory_dump(ptr, 0, 4, 4);
 
-    mem_new(&ptr, ptr, 30);
-    mem_dump(ptr);
-
-    memory_fill(ptr);
-    mem_dump(ptr);
+    memory_dump(ptr, 0, 1, 4);
+    memory_dump(ptr, 0, 1, 8);
+    memory_dump(ptr, 0, 1, 16);
+    memory_dump(ptr, 0, 1, 32);
+    memory_dump(ptr, 0, 1, 64);
 }
 
 int main() {

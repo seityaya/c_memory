@@ -5,14 +5,13 @@
 //SPDX-License-Identifier: LGPL-2.1-or-later
 //Copyright © 2022-2022 Seityagiya Terlekchi. All rights reserved.
 
+#include "inttypes.h"
+#include "malloc.h"
+#include "stdio.h"
+#include "string.h"
+
 #define USE_MEMORY_STATS 1
 #include "yaya_memory.h"
-
-#include "malloc.h"
-#include "string.h"
-#include "stdio.h"
-#include "inttypes.h"
-#include "stddef.h"
 
 #if USE_MEMORY_STATS
 bool memory_stats_init(mem_stats_t **mem_stats){
@@ -90,8 +89,8 @@ bool memory_new(mem_stats_t *mem_stats, void **ptr, void *old_ptr, const size_t 
         memset(mem_new, 0x00, produce);
 
         /*Сохранение информации о количестве памяти*/
-        mem_new->memory_request = new_size_len;
-        mem_new->memory_produce = produce;
+        mem_new->memory_request = (intptr_t)new_size_len;
+        mem_new->memory_produce = (intptr_t)produce;
 
         /*Возвращение указателя на память для пользователя*/
         *ptr = mem_new->memory_ptr;
@@ -112,8 +111,8 @@ bool memory_new(mem_stats_t *mem_stats, void **ptr, void *old_ptr, const size_t 
         mem_old = old_ptr - offsetof(mem_info_t, memory_ptr);
 
         /*Запоминаем сколько было выделено и сколько запрошено*/
-        ptrdiff_t old_size_p = mem_old->memory_produce;
-        ptrdiff_t old_size_r = mem_old->memory_request;
+        intptr_t old_size_p = mem_old->memory_produce;
+        intptr_t old_size_r = mem_old->memory_request;
 
         /*Перераспределяем память*/
         mem_new = realloc(mem_old, new_size_len + sizeof(mem_info_t));
@@ -124,21 +123,21 @@ bool memory_new(mem_stats_t *mem_stats, void **ptr, void *old_ptr, const size_t 
         }
 
         /*Запоминаем сколько выделено и сколько запрошено*/
-        ptrdiff_t new_size_p = malloc_usable_size(mem_new);
-        ptrdiff_t new_size_r = new_size_len;
+        intptr_t new_size_p = (intptr_t)malloc_usable_size(mem_new);
+        intptr_t new_size_r = (intptr_t)new_size_len;
 
         /*Вычисление разницы*/
-        ptrdiff_t diff_r = new_size_r - old_size_r;
-        ptrdiff_t diff_p = new_size_p - old_size_p;
+        intptr_t diff_r = new_size_r - old_size_r;
+        intptr_t diff_p = new_size_p - old_size_p;
 
         /*Зануление хвоста выделеного*/
         if(diff_r > 0){
-            ptrdiff_t diff = new_size_p - offsetof(mem_info_t, memory_ptr) - old_size_r;
+            intptr_t diff = new_size_p - (intptr_t)offsetof(mem_info_t, memory_ptr) - old_size_r;
             memset(mem_new->memory_ptr + old_size_r, 0x00, diff);
         }
 
         if(diff_r < 0){
-            ptrdiff_t diff = new_size_p - offsetof(mem_info_t, memory_ptr) - new_size_r;
+            intptr_t diff = new_size_p - (intptr_t)offsetof(mem_info_t, memory_ptr) - new_size_r;
             memset(mem_new->memory_ptr + new_size_r, 0x00, diff);
         }
 
@@ -198,7 +197,7 @@ size_t memory_size(void *ptr){
     return mem->memory_request;
 }
 
-bool memory_dump(void *ptr, size_t len, uint catbyte, uint column){
+bool memory_dump(void *ptr, size_t len, uintmax_t catbyte, uintmax_t column){
     /*Проверка, что указатель не NULL*/
     if(ptr == NULL){
         return false;
@@ -211,17 +210,18 @@ bool memory_dump(void *ptr, size_t len, uint catbyte, uint column){
         return false;
     }
 
-    mem_info_t *mem = NULL;
     if(len == 0){
+        mem_info_t *mem = NULL;
         mem = ptr - offsetof(mem_info_t, memory_ptr);
         ptr = mem->memory_ptr;
         len = mem->memory_request;
     }
 
-    uintmax_t col1 = (1 + 2 + 16 + 1);
-    uintmax_t col2 = (((column * catbyte) * 2) + column) + 1;
+    uintmax_t const col1 = (1 + 2 + 16 + 1);
+    uintmax_t const col2 = (((column * catbyte) * 2) + column) + 1;
 
-    { /*Шапка*/
+   /*Шапка*/
+    {
         printf("╭");
         for(uintmax_t i = 0; i < col1; i++){
             printf("-");
@@ -234,7 +234,7 @@ bool memory_dump(void *ptr, size_t len, uint catbyte, uint column){
 
         printf("\n");
 
-        printf("| %5zu  %5ux%-5u | ", len, catbyte, column);
+        printf("| %5"PRIuMAX"   %5"PRIuMAX"%-5"PRIuMAX" | ", len, catbyte, column);
         for(uintmax_t i = 0; i < column; i++){
             for(uintmax_t j = 0; j < catbyte; j++){
                 printf("%02jX", i*catbyte+j);
@@ -258,14 +258,16 @@ bool memory_dump(void *ptr, size_t len, uint catbyte, uint column){
         printf("\n");
     }
 
-    { /*Тело*/
-        uint8_t *nadr = ptr - ((uintptr_t)ptr % (column * catbyte));
+    /*Тело*/
+    {
+        uintptr_t madr = ((uintptr_t)ptr % (column * catbyte)) % 0x10;
+        uint8_t *nadr = ptr - madr;
 
         for(uintmax_t m = 0; m < len; ){
             if(m == 0){
-                printf("| 0x%016" PRIxPTR " | ", (uintptr_t)nadr);
+                printf("| 0x%016" PRIXPTR " | ", (uintptr_t)nadr);
             }else{
-                printf("| 0x%016" PRIxPTR " | ", (uintptr_t)&ptr[m]);
+                printf("| 0x%016" PRIXPTR " | ", (uintptr_t)ptr + m);
             }
             for(uintmax_t i = 0; i < column; i++){
                 uintmax_t j = 0;
@@ -284,7 +286,7 @@ L1: ;
 
                 if(m < len){
                     for(uintmax_t l = j; l < catbyte; l++){
-                        printf("%02" PRIx8 "", nadr[m]);
+                        printf("%02" PRIx8 "", ((uint8_t*)ptr)[m]);
                         m++;
 
                         if(m == len){
@@ -306,7 +308,8 @@ L2: ;
         }
     }
 
-    { /*Подвал*/
+    /*Подвал*/
+    {
         printf("╰");
         for(uintmax_t i = 0; i < col1; i++){
             printf("-");
