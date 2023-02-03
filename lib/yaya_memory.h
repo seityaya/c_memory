@@ -10,6 +10,7 @@
 
 #include "stdint.h"
 #include "stdbool.h"
+#include "stddef.h"
 
 #ifndef USE_MEMORY_STATS
 #define USE_MEMORY_STATS 0
@@ -25,13 +26,14 @@ typedef struct mem_stats_t {
 }mem_stats_t;
 
 typedef struct mem_info_t {
-    intptr_t memory_request;
-    intptr_t memory_produce;
-    uint8_t  memory_ptr[];
+    intptr_t memory_request;  //запросили
+    intptr_t memory_produce;  //выдали
+    uint8_t  memory_ptr[];    //указатель на начало
 }mem_info_t;
 
 bool   memory_new(mem_stats_t *mem_stats, void **ptr, void *old_ptr, const size_t new_size_len);
 bool   memory_del(mem_stats_t *mem_stats, void **ptr);
+bool   memory_zero(void *ptr);
 size_t memory_size(void *ptr);
 bool   memory_dump(void *ptr, size_t len, uintmax_t catbyte, uintmax_t column_mod2);
 
@@ -54,6 +56,7 @@ bool memory_stats_show(mem_stats_t *mem_stats);
 #endif /*USE_MEMORY_STATS*/
 
 #define mem_dump(P) memory_dump(P, 0, 1, 16)
+#define mem_zero(P) memory_zero((void*)(P))
 #define mem_size(P) memory_size((void*)(P))
 
 #endif /*YAYA_MEMORY_H*/

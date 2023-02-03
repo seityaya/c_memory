@@ -185,6 +185,12 @@ bool memory_del(mem_stats_t *mem_stats, void **ptr)
     }
 #endif
 
+    volatile uintptr_t size = mem->memory_produce;
+    volatile uint8_t  *p    = (uint8_t*)(mem);
+    while (size--){
+        *p++ = 0;
+    }
+
     free(mem);
     mem = NULL;
     *ptr = NULL;
@@ -192,7 +198,36 @@ bool memory_del(mem_stats_t *mem_stats, void **ptr)
     return true;
 }
 
+bool memory_zero(void *ptr){
+    /*Проверка, что указатели не NULL*/
+    if(ptr == NULL){
+        return false;
+    }
+
+    /*Указатели под структуру памяти*/
+    mem_info_t *mem = NULL;
+
+    /*Помещаем указатель со смещением*/
+    mem = ptr - offsetof(mem_info_t, memory_ptr);
+
+    /*Сохраняем значения*/
+    volatile intptr_t size = mem->memory_request;
+    volatile uint8_t  *p    = mem->memory_ptr;
+
+    /*Заполняем нулями*/
+    while (size--){
+        *p++ = 0;
+    }
+
+    return true;
+}
+
 size_t memory_size(void *ptr){
+    /*Проверка, что указатели не NULL*/
+    if(ptr == NULL){
+        return 0;
+    }
+
     mem_info_t *mem = ptr - offsetof(mem_info_t, memory_ptr);
     return mem->memory_request;
 }
@@ -237,7 +272,7 @@ bool memory_dump(void *ptr, size_t len, uintmax_t catbyte, uintmax_t column){
         printf("| %5"PRIuMAX"   %5"PRIuMAX"%-5"PRIuMAX" | ", len, catbyte, column);
         for(uintmax_t i = 0; i < column; i++){
             for(uintmax_t j = 0; j < catbyte; j++){
-                printf("%02jX", i*catbyte+j);
+                printf("%02"PRIXMAX"", i*catbyte+j);
             }
             printf(" ");
         }

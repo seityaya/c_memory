@@ -141,6 +141,10 @@ void test_dump(){
     memory_dump(ptr, 0, 1, 16);
     memory_dump(ptr, 0, 1, 32);
     memory_dump(ptr, 0, 1, 64);
+
+    void *ptr_save = ptr;
+    mem_del(&ptr);
+    memory_dump(ptr_save, 33, 1, 64);
 }
 
 int main() {
