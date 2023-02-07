@@ -9,9 +9,13 @@ cmake_minimum_required(VERSION 3.0)
 set(CMAKE_C_STANDARD 11)
 add_definitions(-std=c11)
 
-set(VERSION 0.2)
+set(VERSION 0.3)
 set(PROJECT_NAME memory_test)
 project(${PROJECT_NAME})
+
+add_definitions(-DYAYA_MEMORY_STATS_USE=1)
+add_definitions(-DYAYA_MEMORY_STATS_OFF=1)
+add_definitions(-DYAYA_MEMORY_MACRO_DEF=1)
 
 add_executable(
     ${PROJECT_NAME}

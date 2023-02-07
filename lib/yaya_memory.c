@@ -10,11 +10,11 @@
 #include "stdio.h"
 #include "string.h"
 
-#define USE_MEMORY_STATS 1
 #include "yaya_memory.h"
 
-#if USE_MEMORY_STATS
-bool memory_stats_init(mem_stats_t **mem_stats){
+#if YAYA_MEMORY_STATS_USE && !YAYA_MEMORY_STATS_OFF
+bool memory_stats_init(mem_stats_t **mem_stats)
+{
     if(mem_stats == NULL){
         return false;
     }
@@ -31,7 +31,9 @@ bool memory_stats_init(mem_stats_t **mem_stats){
 
     return false;
 }
-bool memory_stats_free(mem_stats_t **mem_stats){
+
+bool memory_stats_free(mem_stats_t **mem_stats)
+{
     if(mem_stats != NULL){
         free(*mem_stats);
         *mem_stats = NULL;
@@ -39,16 +41,21 @@ bool memory_stats_free(mem_stats_t **mem_stats){
     }
     return false;
 }
-bool memory_stats_show(mem_stats_t *mem_stats){
+
+bool memory_stats_show(mem_stats_t *mem_stats)
+{
     if(mem_stats != NULL){
-        printf("Request:% 10" PRIiMAX "; ",   mem_stats->memory_request);
-        printf("Produce:% 10" PRIiMAX "; ",   mem_stats->memory_produce);
+        printf("Request :% 10" PRIiMAX "; ",   mem_stats->memory_request);
+        printf("NEW  :% 10" PRIiMAX "; ",   mem_stats->memory_call_new);
+        printf("\n");
+        printf("Produce :% 10" PRIiMAX "; ",   mem_stats->memory_produce);
+        printf("RES  :% 10" PRIiMAX "; ",   mem_stats->memory_call_res);
+        printf("\n");
         printf("Overhead:% 10" PRIiMAX "; ",  mem_stats->memory_produce - mem_stats->memory_request);
-        printf("Release:% 10" PRIiMAX "; ",   mem_stats->memory_release);
+        printf("DEL  :% 10" PRIiMAX "; ",   mem_stats->memory_call_del);
+        printf("\n");
+        printf("Release :% 10" PRIiMAX "; ",   mem_stats->memory_release);
         printf("USAGE:% 10" PRIiMAX "; ", mem_stats->memory_produce - mem_stats->memory_release);
-        printf("NEW:% 10" PRIiMAX "; ",   mem_stats->memory_call_new);
-        printf("RES:% 10" PRIiMAX "; ",   mem_stats->memory_call_res);
-        printf("DEL:% 10" PRIiMAX "; ",   mem_stats->memory_call_del);
         printf("\n");
         fflush(stdout);
         return true;
@@ -57,7 +64,13 @@ bool memory_stats_show(mem_stats_t *mem_stats){
 }
 #endif
 
-bool memory_new(mem_stats_t *mem_stats, void **ptr, void *old_ptr, const size_t new_size_len)
+bool memory_new(
+        #if YAYA_MEMORY_STATS_USE
+        mem_stats_t *mem_stats,
+        #endif
+        void **ptr,
+        void *old_ptr,
+        const size_t new_size_len)
 {
     /*Указатели под структуру памяти*/
     mem_info_t *mem_old = {0};
@@ -95,7 +108,7 @@ bool memory_new(mem_stats_t *mem_stats, void **ptr, void *old_ptr, const size_t 
         /*Возвращение указателя на память для пользователя*/
         *ptr = mem_new->memory_ptr;
 
-#if USE_MEMORY_STATS
+#if YAYA_MEMORY_STATS_USE && !YAYA_MEMORY_STATS_OFF
         /*Сохранение статистики*/
         if(mem_stats != NULL){
             mem_stats->memory_call_new++;
@@ -111,9 +124,10 @@ bool memory_new(mem_stats_t *mem_stats, void **ptr, void *old_ptr, const size_t 
         mem_old = old_ptr - offsetof(mem_info_t, memory_ptr);
 
         /*Запоминаем сколько было выделено и сколько запрошено*/
-        intptr_t old_size_p = mem_old->memory_produce;
         intptr_t old_size_r = mem_old->memory_request;
-
+#if YAYA_MEMORY_STATS_USE && !YAYA_MEMORY_STATS_OFF
+        intptr_t old_size_p = mem_old->memory_produce;
+#endif
         /*Перераспределяем память*/
         mem_new = realloc(mem_old, new_size_len + sizeof(mem_info_t));
 
@@ -128,8 +142,9 @@ bool memory_new(mem_stats_t *mem_stats, void **ptr, void *old_ptr, const size_t 
 
         /*Вычисление разницы*/
         intptr_t diff_r = new_size_r - old_size_r;
+#if YAYA_MEMORY_STATS_USE && !YAYA_MEMORY_STATS_OFF
         intptr_t diff_p = new_size_p - old_size_p;
-
+#endif
         /*Зануление хвоста выделеного*/
         if(diff_r > 0){
             intptr_t diff = new_size_p - (intptr_t)offsetof(mem_info_t, memory_ptr) - old_size_r;
@@ -148,7 +163,7 @@ bool memory_new(mem_stats_t *mem_stats, void **ptr, void *old_ptr, const size_t 
         /*Возвращение указателя на память для пользователя*/
         *ptr = mem_new->memory_ptr;
 
-#if USE_MEMORY_STATS
+#if YAYA_MEMORY_STATS_USE && !YAYA_MEMORY_STATS_OFF
         /*Сохранение статистики*/
         if(mem_stats != NULL){
             mem_stats->memory_call_res++;
@@ -160,7 +175,11 @@ bool memory_new(mem_stats_t *mem_stats, void **ptr, void *old_ptr, const size_t 
     return true;
 }
 
-bool memory_del(mem_stats_t *mem_stats, void **ptr)
+bool memory_del(
+        #if YAYA_MEMORY_STATS_USE
+        mem_stats_t *mem_stats,
+        #endif
+        void **ptr)
 {
     /*Проверка, что указатели не NULL*/
     if(ptr == NULL){
@@ -177,7 +196,7 @@ bool memory_del(mem_stats_t *mem_stats, void **ptr)
     /*Помещаем указатель со смещением*/
     mem = *ptr - offsetof(mem_info_t, memory_ptr);
 
-#if USE_MEMORY_STATS
+#if YAYA_MEMORY_STATS_USE && !YAYA_MEMORY_STATS_OFF
     /*Сохранение статистики*/
     if(mem_stats != NULL){
         mem_stats->memory_call_del++;
@@ -198,7 +217,8 @@ bool memory_del(mem_stats_t *mem_stats, void **ptr)
     return true;
 }
 
-bool memory_zero(void *ptr){
+bool memory_zero(void *ptr)
+{
     /*Проверка, что указатели не NULL*/
     if(ptr == NULL){
         return false;
@@ -222,7 +242,8 @@ bool memory_zero(void *ptr){
     return true;
 }
 
-size_t memory_size(void *ptr){
+size_t memory_size(void *ptr)
+{
     /*Проверка, что указатели не NULL*/
     if(ptr == NULL){
         return 0;
@@ -232,7 +253,8 @@ size_t memory_size(void *ptr){
     return mem->memory_request;
 }
 
-bool memory_dump(void *ptr, size_t len, uintmax_t catbyte, uintmax_t column){
+bool memory_dump(void *ptr, size_t len, uintmax_t catbyte, uintmax_t column)
+{
     /*Проверка, что указатель не NULL*/
     if(ptr == NULL){
         return false;
@@ -255,7 +277,7 @@ bool memory_dump(void *ptr, size_t len, uintmax_t catbyte, uintmax_t column){
     uintmax_t const col1 = (1 + 2 + 16 + 1);
     uintmax_t const col2 = (((column * catbyte) * 2) + column) + 1;
 
-   /*Шапка*/
+    /*Шапка*/
     {
         printf("╭");
         for(uintmax_t i = 0; i < col1; i++){
@@ -266,9 +288,7 @@ bool memory_dump(void *ptr, size_t len, uintmax_t catbyte, uintmax_t column){
             printf("-");
         }
         printf("╮");
-
         printf("\n");
-
         printf("| %5"PRIuMAX"   %5"PRIuMAX"%-5"PRIuMAX" | ", len, catbyte, column);
         for(uintmax_t i = 0; i < column; i++){
             for(uintmax_t j = 0; j < catbyte; j++){
@@ -277,9 +297,7 @@ bool memory_dump(void *ptr, size_t len, uintmax_t catbyte, uintmax_t column){
             printf(" ");
         }
         printf("|");
-
         printf("\n");
-
         printf("├");
         for(uintmax_t i = 0; i < col1; i++){
             printf("-");
@@ -289,7 +307,6 @@ bool memory_dump(void *ptr, size_t len, uintmax_t catbyte, uintmax_t column){
             printf("-");
         }
         printf("┤");
-
         printf("\n");
     }
 
@@ -304,6 +321,7 @@ bool memory_dump(void *ptr, size_t len, uintmax_t catbyte, uintmax_t column){
             }else{
                 printf("| 0x%016" PRIXPTR " | ", (uintptr_t)ptr + m);
             }
+
             for(uintmax_t i = 0; i < column; i++){
                 uintmax_t j = 0;
 
@@ -316,26 +334,20 @@ bool memory_dump(void *ptr, size_t len, uintmax_t catbyte, uintmax_t column){
                     }
                     printf(" ");
                     continue;
-L1: ;
                 }
-
-                if(m < len){
-                    for(uintmax_t l = j; l < catbyte; l++){
+L1:
+                for(uintmax_t l = j; l < catbyte; l++){
+                    if(m < len){
                         printf("%02" PRIx8 "", ((uint8_t*)ptr)[m]);
                         m++;
 
                         if(m == len){
-                            j = l+1;
-                            goto L2;
+                            continue;
                         }
-                    }
-                }else{
-L2: ;
-                    for(uintmax_t l = j; l < catbyte; l++){
+                    }else{
                         printf("..");
                     }
                 }
-
                 printf(" ");
             }
             printf("|");
