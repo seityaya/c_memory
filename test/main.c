@@ -233,6 +233,8 @@ void test_dump(){
     memory_fill(ptr);
 
     memory_dump(ptr, 0, 1, 4);
+    memory_dump(ptr, 0, 4, 2);
+    memory_dump(ptr, 0, 4, 2);
     memory_dump(ptr, 0, 1, 8);
     memory_dump(ptr, 0, 1, 16);
     memory_dump(ptr, 0, 1, 32);

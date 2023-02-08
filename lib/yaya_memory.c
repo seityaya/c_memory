@@ -204,11 +204,13 @@ bool memory_del(
     }
 #endif
 
+#if YAYA_MEMORY_FILL_NULL_AFTER_FREE
     volatile uintptr_t size = mem->memory_produce;
     volatile uint8_t  *p    = (uint8_t*)(mem);
     while (size--){
         *p++ = 0;
     }
+#endif
 
     free(mem);
     mem = NULL;
@@ -224,15 +226,15 @@ bool memory_zero(void *ptr)
         return false;
     }
 
-    /*Указатели под структуру памяти*/
-    mem_info_t *mem = NULL;
+    /*Указатель под структуру памяти*/
+    mem_info_t *mem_info = NULL;
 
     /*Помещаем указатель со смещением*/
-    mem = ptr - offsetof(mem_info_t, memory_ptr);
+    mem_info = ptr - offsetof(mem_info_t, memory_ptr);
 
     /*Сохраняем значения*/
-    volatile intptr_t size = mem->memory_request;
-    volatile uint8_t  *p    = mem->memory_ptr;
+    volatile intptr_t size = mem_info->memory_request;
+    volatile uint8_t  *p   = mem_info->memory_ptr;
 
     /*Заполняем нулями*/
     while (size--){
@@ -249,8 +251,14 @@ size_t memory_size(void *ptr)
         return 0;
     }
 
-    mem_info_t *mem = ptr - offsetof(mem_info_t, memory_ptr);
-    return mem->memory_request;
+    /*Указатель под структуру памяти*/
+    mem_info_t *mem_info = NULL;
+
+    /*Помещаем указатель со смещением*/
+    mem_info = ptr - offsetof(mem_info_t, memory_ptr);
+
+    /*Возвращаем размер запрошеной памяти*/
+    return mem_info->memory_request;
 }
 
 bool memory_dump(void *ptr, size_t len, uintmax_t catbyte, uintmax_t column)
@@ -259,10 +267,11 @@ bool memory_dump(void *ptr, size_t len, uintmax_t catbyte, uintmax_t column)
     if(ptr == NULL){
         return false;
     }
+
+    /*Проверка, что числа есть степень 2*/
     if(catbyte == 0 || (catbyte & (catbyte - 1)) != 0){
         return false;
     }
-
     if(column == 0 || (column & (column - 1)) != 0){
         return false;
     }
