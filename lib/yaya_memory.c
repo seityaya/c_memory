@@ -72,6 +72,10 @@ bool memory_new(
         void *old_ptr,
         const size_t new_size_len)
 {
+#if YAYA_MEMORY_STATS_USE && YAYA_MEMORY_STATS_OFF
+    (void*)(mem_stats);
+#endif
+
     /*Указатели под структуру памяти*/
     mem_info_t *mem_old = {0};
     mem_info_t *mem_new = {0};
@@ -181,6 +185,10 @@ bool memory_del(
         #endif
         void **ptr)
 {
+#if YAYA_MEMORY_STATS_USE && YAYA_MEMORY_STATS_OFF
+    (void*)(mem_stats);
+#endif
+
     /*Проверка, что указатели не NULL*/
     if(ptr == NULL){
         return false;
@@ -298,7 +306,7 @@ bool memory_dump(void *ptr, size_t len, uintmax_t catbyte, uintmax_t column)
         }
         printf("╮");
         printf("\n");
-        printf("| %5"PRIuMAX"   %5"PRIuMAX"%-5"PRIuMAX" | ", len, catbyte, column);
+        printf("| Total len:%3"PRIuMAX" byte | ", len);
         for(uintmax_t i = 0; i < column; i++){
             for(uintmax_t j = 0; j < catbyte; j++){
                 printf("%02"PRIXMAX"", i*catbyte+j);
@@ -376,9 +384,185 @@ L1:
         }
         printf("╯");
     }
-
     printf("\n");
+    if(fflush(stdout) == 0){
+        return true;
+    }
+    return true;
+}
 
-    fflush(stdout);
+#define foreveriter(i) for(int (i) = 0; 0 == 0 ; (i)++)
+#define abs(_x_abs) (((_x_abs) > 0) ? (_x_abs) : (((_x_abs) < 0) ? (-(_x_abs)) : (0)))
+static uintmax_t yaya_bit_sequence(void *ptr, uintmax_t offset, uintmax_t len){
+    uint8_t *bytes = (uint8_t*)ptr;
+    uintmax_t result = 0;
+    uint32_t result32_1 = 0;
+    uint32_t result32_2 = 0;
+    if(len <= 16){
+        for (uintmax_t i = 0; i < len; i++) {
+            result |= ((bytes[(offset + i) / 8U] >> ((offset + i) % 8U)) & 1U) << i;
+        }
+        return result;
+    }
+    if(len <= 32){
+        for (uintmax_t i = 0; i < len; i++) {
+            result32_1 |= ((bytes[(offset + i) / 8U] >> ((offset + i) % 8U)) & 1U) << i;
+        }
+        result = result32_1;
+        return result;
+    }
+    if(len <= 64){
+        for (uintmax_t i = 0; i < 32; i++) {
+            result32_1 |= ((bytes[(offset + i) / 8U] >> ((offset + i) % 8U)) & 1U) << i;
+        }
+        for (uintmax_t i = 0; i < 64U - (len - 32U); i++) {
+            result32_2 |= ((bytes[(offset + 32U + i) / 8U] >> ((offset + i) % 8U)) & 1U) << i;
+        }
+        result = (uintmax_t)result32_1 | ((uintmax_t)result32_2) << 32U;
+        return result;
+    }
+    return result;
+}
+
+bool memory_look(void *ptr, uintmax_t struct_count, size_t struct_size, bool hide_alignof, intmax_t list_bit_len[]){
+    /*Проверка, что указатель не NULL*/
+    if(ptr == NULL){
+        return false;
+    }
+
+    /* Объявление вычислимых констант */
+    intmax_t list_bit_sum   = 0;
+    intmax_t list_bit_count = 0;
+    intmax_t list_str_sum   = 0;
+    intmax_t list_str_count = 0;
+
+    /* Вычисление констант */
+    foreveriter(i){
+        if(list_bit_len[i] == 0){
+            list_bit_count = i;
+            break;
+        }
+        if(list_bit_len[i] > 0 || !hide_alignof){
+            list_str_sum += abs(list_bit_len[i]);
+            list_str_count++;
+        }
+        list_bit_sum += abs(list_bit_len[i]);
+    }
+
+    /* Проверка, что переданый размер структуры и массив отступов совпадают */
+    if((struct_size * __CHAR_BIT__) != list_bit_sum) {
+        printf("ERROR:\n");
+        printf("ptr = 0x%016" PRIXPTR "\n", (uintptr_t)((uint8_t*)(ptr)));
+        printf("ucn = %ld\n", struct_count);
+        printf("lcn = %ld\n", list_bit_count);
+        printf("bit = %ld bit\n", struct_size * __CHAR_BIT__);
+        printf("sum = %ld bit\n", list_bit_sum);
+        printf("lbl = [");
+        foreveriter(i){
+            if(list_bit_len[i] == 0){
+                break;
+            }
+            printf("%" PRIiMAX "", list_bit_len[i]);
+            if(list_bit_len[i+1] != 0){
+                printf(", ");
+            }
+        }
+        printf("]\n");
+        return false;
+    }
+
+    /* Таблица */
+    {
+        uintmax_t col1 = (1 + 2 + 16 + 1);
+        uintmax_t col2 = list_str_count + 1;
+
+        foreveriter(i){
+            if(list_bit_len[i] == 0){
+                break;
+            }
+            if(list_bit_len[i] < 0 && hide_alignof){
+                continue;
+            }
+            if(list_bit_len[i] % 4 == 0){
+                col2 += abs(list_bit_len[i]) / 4;
+            }else{
+                col2++;
+            }
+        }
+
+        /* Шапка */
+        {
+            printf("╭");
+            for(uintmax_t i = 0; i < col1; i++){
+                printf("-");
+            }
+            printf("┬");
+            for(uintmax_t i = 0; i < col2; i++){
+                printf("-");
+            }
+            printf("╮");
+            printf("\n");
+            printf("| Unit len:%5"PRIuMAX" bit | ", struct_size * __CHAR_BIT__);
+            for(uintmax_t i = 0; i < list_bit_count; i++){
+                if(list_bit_len[i] < 0 && hide_alignof){
+                    continue;
+                }
+                printf("%*"PRIiMAX"", (int)(abs(list_bit_len[i]) / 4), abs(list_bit_len[i]));
+                printf(" ");
+            }
+            printf("|");
+            printf("\n");
+            printf("├");
+            for(uintmax_t i = 0; i < col1; i++){
+                printf("-");
+            }
+            printf("┼");
+            for(uintmax_t i = 0; i < col2; i++){
+                printf("-");
+            }
+            printf("┤");
+            printf("\n");
+        }
+
+        /* Тело */
+        {
+            for(uintmax_t i = 0; i < struct_count; i++){
+                printf("| 0x%016" PRIXPTR " | ", (uintptr_t)ptr + (i * struct_size));
+
+                intmax_t sum = 0;
+                for(intmax_t s = 0; s < list_bit_count; s++){
+                    intmax_t length = list_bit_len[s];
+
+                    if(length > 0 || !hide_alignof){
+                        uint64_t res = yaya_bit_sequence(ptr, (struct_size * __CHAR_BIT__ * i) + sum, abs(length));
+                        printf("%0*" PRIx64 "", (int)(abs(length)) / 4, res);
+                        printf(" ");
+                    }
+
+                    sum+=abs(length);
+                }
+
+                printf("|\n");
+            }
+        }
+
+        /*Подвал*/
+        {
+            printf("╰");
+            for(uintmax_t i = 0; i < col1; i++){
+                printf("-");
+            }
+            printf("┴");
+            for(uintmax_t i = 0; i < col2; i++){
+                printf("-");
+            }
+            printf("╯");
+        }
+        printf("\n");
+    }
+
+    if(fflush(stdout) == 0){
+        return true;
+    }
     return true;
 }

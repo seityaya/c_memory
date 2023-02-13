@@ -38,6 +38,7 @@ bool memory_fill(void *ptr){
 }
 
 void test_param() {
+    printf("test_param\n");
 #if YAYA_MEMORY_STATS_USE
     mem_stats_t* mem_stats = NULL;
     if(memory_stats_init(&mem_stats)){
@@ -179,6 +180,7 @@ void test_param() {
 }
 
 void test_dump(){
+    printf("test_dump\n");
 #if YAYA_MEMORY_STATS_USE
     mem_stats_t* mem_stats = NULL;
     if(!memory_stats_init(&mem_stats)){
@@ -254,10 +256,45 @@ void test_dump(){
 #endif
 }
 
+void test_look(){
+    printf("test_look\n");
+
+    typedef struct S{
+        uint8_t  x1:3;
+        uint8_t  x2:1;
+        uint8_t  x3:4;
+        uint16_t a;
+        int8_t   b;
+        int16_t  c;
+        uint8_t  d;
+        int32_t  e;
+        void*    p;
+    }S;
+
+    int a = 0;
+    printf("%p\n", &a);
+
+    S t[] = {
+        {7, 1, 10, 5,  -1,       3,   1,   0,       3},
+        {7, 1, 10, 5,  -1,       2,   1,   1,      &a},
+        {7, 1, 10, 5,  -1,       1,   1,  -1,      &t},
+        {7, 1, 10, 5, 0-1,       0, 0-1,   2,      &t},
+        {7, 1, 10, 5,   0,  0xFFFF,   0,  -2, &t[0].a}
+    };
+
+    memory_dump(t, sizeof(S) * 5, 1, 16);
+
+    memory_look(&t, 5, sizeof(S), 0, ({ (intmax_t[]) { 3, 1, 4, -8, 16, 8, -8, 16, 8, -24, 32, sizeof(void*) * __CHAR_BIT__, 0}; }) );
+
+    memory_look(&t, 5, sizeof(S), 1, mem_list(3, 1, 4, -8, 16, 8, -8, 16, 8, -24, 32, 64));
+
+    mem_look(&t, 5, S, mem_list(3, 1, 4, -8, 16, 8, -8, 16, 8, -24, 32, 64));
+}
+
 int main()
 {
     test_param();
     test_dump();
-
+    test_look();
     return 0;
 }

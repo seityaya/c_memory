@@ -9,7 +9,7 @@ cmake_minimum_required(VERSION 3.0)
 set(CMAKE_C_STANDARD 11)
 add_definitions(-std=c11)
 
-set(VERSION 0.3)
+set(VERSION 0.5)
 set(PROJECT_NAME memory_test)
 project(${PROJECT_NAME})
 

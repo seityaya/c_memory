@@ -68,19 +68,23 @@ bool   memory_del(void **ptr);
 bool   memory_zero(void *ptr);
 size_t memory_size(void *ptr);
 bool   memory_dump(void *ptr, size_t len, uintmax_t catbyte, uintmax_t column_mod2);
+bool   memory_look(void *ptr, uintmax_t struct_count, size_t struct_size, bool hide_alignof, intmax_t list_bit_len[]);
 
 #if YAYA_MEMORY_MACRO_DEF
 #if YAYA_MEMORY_STATS_USE
-#define mem_new(S, N, O, s) memory_new((S), (void**)(N), (void*)(O), (s))
-#define mem_del(S, N)       memory_del((S), (void**)(N))
+#define mem_new(S, N, O, s)  memory_new((S), (void**)(N), (void*)(O), (s))
+#define mem_del(S, N)        memory_del((S), (void**)(N))
 #else
-#define mem_new(N, O, s)    memory_new((void**)(N), (void*)(O), (s))
-#define mem_del(N)          memory_del((void**)(N))
+#define mem_new(N, O, s)     memory_new((void**)(N), (void*)(O), (s))
+#define mem_del(N)           memory_del((void**)(N))
 #endif /*YAYA_MEMORY_STATS_USE*/
 
-#define mem_zero(P)         memory_zero((void*)(P))
-#define mem_size(P)         memory_size((void*)(P))
-#define mem_dump(P)         memory_dump((void*)(P), 0, 1, 16)
+#define mem_zero(P)          memory_zero((void*)(P))
+#define mem_size(P)          memory_size((void*)(P))
+#define mem_dump(P)          memory_dump((void*)(P), 0, 1, 16)
+#define mem_look(P, C, S, M) memory_look((void*)(P), C, sizeof(S), 1, M)
+#define mem_list(...)        ({ (intmax_t[]){__VA_ARGS__, 0}; })
+
 #endif /*YAYA_MEMORY_MACRO_DEF*/
 
 #endif /*YAYA_MEMORY_H*/
