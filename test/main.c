@@ -176,7 +176,8 @@ void test_param() {
         printf("ER\n");
     }
 #endif
-
+    printf("\n");
+    fflush(stdout);
 }
 
 void test_dump(){
@@ -202,8 +203,6 @@ void test_dump(){
     mem_new(&ptr, ptr, 17);
 #endif
     memory_dump(ptr, 0, 1, 16);
-
-    printf("\n");
 
 #if YAYA_MEMORY_STATS_USE
     mem_new(mem_stats, &ptr, ptr, 42);
@@ -254,6 +253,8 @@ void test_dump(){
     memory_stats_show(mem_stats);
     memory_stats_free(&mem_stats);
 #endif
+    printf("\n");
+    fflush(stdout);
 }
 
 void test_look(){
@@ -291,6 +292,9 @@ void test_look(){
     memory_look(&t, 5, sizeof(S), mem_list(3, 1, 4, -8, 16, 8, 8, 16, 8, -24, 32, 21, 11, 32, 64));
 
     mem_look(&t, 5, S, mem_list(3, 1, 4, -8, 16, 8, 8, 16, 8, -24, 32, 21, 11, 32, 64));
+
+    printf("\n");
+    fflush(stdout);
 }
 
 int main()
