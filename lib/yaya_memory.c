@@ -8,8 +8,8 @@
 #include "inttypes.h"
 #include "malloc.h"
 #include "stdio.h"
-#include "string.h"
 #include "stdlib.h"
+#include "string.h"
 
 #include "yaya_memory.h"
 
@@ -58,8 +58,10 @@ bool memory_stats_show(mem_stats_t *mem_stats)
         printf("Release :% 10" PRIiMAX "; ",   mem_stats->memory_release);
         printf("USAGE:% 10" PRIiMAX "; ", mem_stats->memory_produce - mem_stats->memory_release);
         printf("\n");
-        fflush(stdout);
-        return true;
+
+        if(fflush(stdout) == 0){
+            return true;
+        }
     }
     return false;
 }
@@ -71,10 +73,11 @@ bool memory_new(
         #endif
         void **ptr,
         void *old_ptr,
-        const size_t new_size_len)
+        const size_t count,
+        const size_t size)
 {
 #if YAYA_MEMORY_STATS_USE && YAYA_MEMORY_STATS_OFF
-    (void*)(mem_stats);
+    mem_stats = NULL;
 #endif
 
     /*Указатели под структуру памяти*/
@@ -82,6 +85,7 @@ bool memory_new(
     mem_info_t *mem_new = {0};
 
     /*Проверка, что запрошено не нулевой размер памяти*/
+    const size_t new_size_len = (count * size);
     if(new_size_len == 0){
         return false;
     }
@@ -107,8 +111,8 @@ bool memory_new(
         memset(mem_new, 0x00, produce);
 
         /*Сохранение информации о количестве памяти*/
-        mem_new->memory_request = (intptr_t)new_size_len;
-        mem_new->memory_produce = (intptr_t)produce;
+        mem_new->memory_request = new_size_len;
+        mem_new->memory_produce = produce;
 
         /*Возвращение указателя на память для пользователя*/
         *ptr = mem_new->memory_ptr;
@@ -129,9 +133,9 @@ bool memory_new(
         mem_old = old_ptr - offsetof(mem_info_t, memory_ptr);
 
         /*Запоминаем сколько было выделено и сколько запрошено*/
-        intptr_t old_size_r = mem_old->memory_request;
+        size_t old_size_r = mem_old->memory_request;
 #if YAYA_MEMORY_STATS_USE && !YAYA_MEMORY_STATS_OFF
-        intptr_t old_size_p = mem_old->memory_produce;
+        size_t old_size_p = mem_old->memory_produce;
 #endif
         /*Перераспределяем память*/
         mem_new = realloc(mem_old, new_size_len + sizeof(mem_info_t));
@@ -142,22 +146,21 @@ bool memory_new(
         }
 
         /*Запоминаем сколько выделено и сколько запрошено*/
-        intptr_t new_size_p = (intptr_t)malloc_usable_size(mem_new);
-        intptr_t new_size_r = (intptr_t)new_size_len;
+        size_t new_size_p = malloc_usable_size(mem_new);
+        size_t new_size_r = new_size_len;
 
         /*Вычисление разницы*/
-        intptr_t diff_r = new_size_r - old_size_r;
+        intptr_t diff_r = (intptr_t)(new_size_r) - (intptr_t)(old_size_r);
 #if YAYA_MEMORY_STATS_USE && !YAYA_MEMORY_STATS_OFF
-        intptr_t diff_p = new_size_p - old_size_p;
+        intptr_t diff_p = (intptr_t)(new_size_p) - (intptr_t)(old_size_p);
 #endif
         /*Зануление хвоста выделеного*/
         if(diff_r > 0){
-            intptr_t diff = new_size_p - (intptr_t)offsetof(mem_info_t, memory_ptr) - old_size_r;
+            size_t diff = new_size_p - offsetof(mem_info_t, memory_ptr) - old_size_r;
             memset(mem_new->memory_ptr + old_size_r, 0x00, diff);
         }
-
         if(diff_r < 0){
-            intptr_t diff = new_size_p - (intptr_t)offsetof(mem_info_t, memory_ptr) - new_size_r;
+            size_t diff = new_size_p - offsetof(mem_info_t, memory_ptr) - new_size_r;
             memset(mem_new->memory_ptr + new_size_r, 0x00, diff);
         }
 
@@ -172,8 +175,8 @@ bool memory_new(
         /*Сохранение статистики*/
         if(mem_stats != NULL){
             mem_stats->memory_call_res++;
-            mem_stats->memory_request += diff_r;
-            mem_stats->memory_produce += diff_p;
+            mem_stats->memory_request += (size_t)(diff_r);
+            mem_stats->memory_produce += (size_t)(diff_p);
         }
 #endif
     }
@@ -187,7 +190,7 @@ bool memory_del(
         void **ptr)
 {
 #if YAYA_MEMORY_STATS_USE && YAYA_MEMORY_STATS_OFF
-    (void*)(mem_stats);
+    mem_stats = NULL;
 #endif
 
     /*Проверка, что указатели не NULL*/
@@ -242,8 +245,8 @@ bool memory_zero(void *ptr)
     mem_info = ptr - offsetof(mem_info_t, memory_ptr);
 
     /*Сохраняем значения*/
-    volatile intptr_t size = mem_info->memory_request;
-    volatile uint8_t  *p   = mem_info->memory_ptr;
+    volatile size_t  size = mem_info->memory_request;
+    volatile uint8_t *p   = mem_info->memory_ptr;
 
     /*Заполняем нулями*/
     while (size--){
@@ -340,10 +343,10 @@ bool memory_dump(void *ptr, size_t len, uintmax_t catbyte, uintmax_t column)
         }
         printf("╮");
         printf("\n");
-        printf("| Len: %8"PRIuMAX" byte | ", len);
+        printf("| Len: %8" PRIuMAX " byte | ", len);
         for(uintmax_t i = 0; i < column; i++){
             for(uintmax_t j = 0; j < catbyte; j++){
-                printf("%02"PRIXMAX"", i*catbyte+j);
+                printf("%02" PRIXMAX "", i*catbyte+j);
             }
             printf(" ");
         }
@@ -422,7 +425,7 @@ L1:
     if(fflush(stdout) == 0){
         return true;
     }
-    return true;
+    return false;
 }
 
 static uintmax_t bit_sequence(void *ptr, uintmax_t offset, uintmax_t len){
@@ -494,11 +497,11 @@ bool memory_look(void *ptr, uintmax_t struct_count, size_t struct_size, intmax_t
         if((struct_size * __CHAR_BIT__) != list_bit_sum) {
             printf("ERROR:\n");
             printf("ptr = 0x%016" PRIXPTR "\n", (uintptr_t)((uint8_t*)(ptr)));
-            printf("ucn = %ld\n", struct_count);
-            printf("lcn = %ld\n", list_bit_count);
-            printf("bit = %ld bit\n", struct_size * __CHAR_BIT__);
-            printf("sum = %ld bit\n", list_bit_sum);
-            printf("dlt = %ld\n", struct_size * __CHAR_BIT__ - list_bit_sum);
+            printf("ucn = %" PRIiMAX "\n", struct_count);
+            printf("lcn = %" PRIiMAX "\n", list_bit_count);
+            printf("bit = %" PRIiMAX " bit\n", struct_size * __CHAR_BIT__);
+            printf("sum = %" PRIiMAX " bit\n", list_bit_sum);
+            printf("dlt = %" PRIiMAX "\n", struct_size * __CHAR_BIT__ - (uintmax_t)(list_bit_sum));
             printf("lbl = [");
             for(intmax_t i = 0; 0 == 0; i++){
                 if(list_bit_len[i] == 0){
@@ -515,10 +518,10 @@ bool memory_look(void *ptr, uintmax_t struct_count, size_t struct_size, intmax_t
 
     /* Таблица */
     {
-        uintmax_t col1 = (1 + 2 + 16 + 1);
-        uintmax_t col2 = 1;
-        uintmax_t list_count = 0;
-        uintmax_t bits_count = 0;
+        intmax_t col1 = (1 + 2 + 16 + 1);
+        intmax_t col2 = 1;
+        intmax_t list_count = 0;
+        intmax_t bits_count = 0;
 
         for(intmax_t i = 0; 0 == 0; i++){
             if(list_bit_len[i] == 0){
@@ -547,7 +550,7 @@ bool memory_look(void *ptr, uintmax_t struct_count, size_t struct_size, intmax_t
             }
             printf("╮");
             printf("\n");
-            printf("| S: %5"PRIuMAX"/%-5"PRIuMAX" bit | ", bits_count, struct_size * __CHAR_BIT__);
+            printf("| S: %5" PRIuMAX "/%-5"PRIuMAX" bit | ", bits_count, struct_size * __CHAR_BIT__);
             for(uintmax_t i = 0; i < list_count; i++){
                 if(list_bit_len[i] < 0){
                     continue;
@@ -570,11 +573,11 @@ bool memory_look(void *ptr, uintmax_t struct_count, size_t struct_size, intmax_t
         /* Тело */
         {
             for(uintmax_t i = 0; i < struct_count; i++){
-                printf("| 0x%016" PRIXPTR " | ", (uintptr_t)ptr + (i * struct_size));
+                printf("| 0x%016" PRIXPTR " | ", (uintptr_t)(ptr) + (i * (uintptr_t)(struct_size)));
                 intmax_t sum = 0;
                 for(intmax_t s = 0; s < list_count; s++){
                     if(list_bit_len[s] > 0){
-                        uint64_t res = bit_sequence(ptr, (struct_size * __CHAR_BIT__ * i) + sum, list_bit_len[s]);
+                        uint64_t res = bit_sequence(ptr, (uintptr_t)(struct_size * __CHAR_BIT__ * i) + (uintptr_t)(sum), (uintmax_t)(list_bit_len[s]));
                         printf("%0*" PRIx64 " ", (int)(list_bit_len[s] / 4 + ((list_bit_len[s] < 4 || list_bit_len[s] % 4 > 0) ? 1 : 0)), res);
                         sum += list_bit_len[s];
                     }else{
@@ -602,5 +605,5 @@ bool memory_look(void *ptr, uintmax_t struct_count, size_t struct_size, intmax_t
     if(fflush(stdout) == 0){
         return true;
     }
-    return true;
+    return false;
 }

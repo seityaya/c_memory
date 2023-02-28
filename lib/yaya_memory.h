@@ -32,12 +32,12 @@
 
 #if YAYA_MEMORY_STATS_USE
 typedef struct mem_stats_t {
-    intptr_t memory_request;  //запросил
-    intptr_t memory_produce;  //выдали
-    intptr_t memory_release;  //освободил
-    intmax_t memory_call_new; //фактически выдано
-    intmax_t memory_call_res; //фактически перераспределено
-    intmax_t memory_call_del; //фактически удалено
+    size_t memory_request;  //запросил
+    size_t memory_produce;  //выдали
+    size_t memory_release;  //освободил
+    size_t memory_call_new; //фактически выдано
+    size_t memory_call_res; //фактически перераспределено
+    size_t memory_call_del; //фактически удалено
 }mem_stats_t;
 
 #if YAYA_MEMORY_STATS_OFF
@@ -58,10 +58,10 @@ typedef struct mem_info_t {
 }mem_info_t;
 
 #if YAYA_MEMORY_STATS_USE
-bool   memory_new(mem_stats_t *mem_stats, void **ptr, void *old_ptr, const size_t new_size_len);
+bool   memory_new(mem_stats_t *mem_stats, void **ptr, void *old_ptr, const size_t count, const size_t size);
 bool   memory_del(mem_stats_t *mem_stats, void **ptr);
 #else
-bool   memory_new(void **ptr, void *old_ptr, const size_t new_size_len);
+bool   memory_new(void **ptr, void *old_ptr, const size_t count, const size_t size);
 bool   memory_del(void **ptr);
 #endif /*YAYA_MEMORY_STATS_USE*/
 
@@ -75,10 +75,10 @@ bool   memory_look(void *ptr, uintmax_t struct_count, size_t struct_size, intmax
 
 #if YAYA_MEMORY_MACRO_DEF
 #if YAYA_MEMORY_STATS_USE
-#define mem_new(S, N, O, s)      memory_new((S), (void**)(N), (void*)(O), (s))
-#define mem_del(S, N)            memory_del((S), (void**)(N))
+#define mem_new(I, N, O, C, S)   memory_new((I), (void**)(N), (void*)(O), (C), (S))
+#define mem_del(I, N)            memory_del((I), (void**)(N))
 #else
-#define mem_new(N, O, s)         memory_new((void**)(N), (void*)(O), (s))
+#define mem_new(N, O, C, S)      memory_new((void**)(N), (void*)(O), (C), (S))
 #define mem_del(N)               memory_del((void**)(N))
 #endif /*YAYA_MEMORY_STATS_USE*/
 

@@ -40,6 +40,7 @@ bool memory_fill(void *ptr){
 
 void test_param() {
     printf("test_param\n");
+
 #if YAYA_MEMORY_STATS_USE
     mem_stats_t* mem_stats = NULL;
     if(memory_stats_init(&mem_stats)){
@@ -49,113 +50,228 @@ void test_param() {
     }
 #endif
 
+
 #if YAYA_MEMORY_STATS_USE
-    if(!mem_new(mem_stats, NULL, NULL, 0)){
+#if YAYA_MEMORY_MACRO_DEF
+    if(!mem_new(mem_stats, NULL, NULL, 0, 0))
 #else
-    if(!mem_new(NULL, NULL, 0)){
+    if(!memory_new(mem_stats, NULL, NULL, 0, 0))
 #endif
+#else
+#if YAYA_MEMORY_MACRO_DEF
+    if(!mem_new(NULL, NULL, 0, 0))
+#else
+    if(!memory_new(NULL, NULL, 0, 0))
+#endif
+#endif
+    {
         printf("01 OK\n");
     }else{
         printf("ER\n");
     }
 
+
     void *ptr = NULL;
 
 #if YAYA_MEMORY_STATS_USE
-    if(!mem_new(mem_stats, &ptr, NULL, 0)){
+#if YAYA_MEMORY_MACRO_DEF
+    if(!mem_new(mem_stats, &ptr, NULL, 0, 0))
 #else
-    if(!mem_new(&ptr, NULL, 0)){
+    if(!memory_new(mem_stats, &ptr, NULL, 0, 0))
 #endif
+#else
+#if YAYA_MEMORY_MACRO_DEF
+    if(!mem_new(&ptr, NULL, 0, 0))
+#else
+    if(!memory_new(&ptr, NULL, 0, 0))
+#endif
+#endif
+    {
         printf("02 OK\n");
     }else{
         printf("ER\n");
     }
 
+
 #if YAYA_MEMORY_STATS_USE
-    if(!mem_new(mem_stats, &ptr, ptr, 0)){
+#if YAYA_MEMORY_MACRO_DEF
+    if(!mem_new(mem_stats, &ptr, ptr, 0, 0))
 #else
-    if(!mem_new(&ptr, ptr, 0)){
+    if(!memory_new(mem_stats, &ptr, ptr, 0, 0))
 #endif
+#else
+#if YAYA_MEMORY_MACRO_DEF
+    if(!mem_new(&ptr, ptr, 0, 0))
+#else
+    if(!memory_new(&ptr, ptr, 0, 0))
+#endif
+#endif
+    {
         printf("03 OK\n");
     }else{
         printf("ER\n");
     }
 
+
 #if YAYA_MEMORY_STATS_USE
-    if(!mem_new(mem_stats, NULL, NULL, 1)){
+#if YAYA_MEMORY_MACRO_DEF
+    if(!mem_new(mem_stats, NULL, NULL, 1, sizeof(char)))
 #else
-    if(!mem_new(NULL, NULL, 1)){
+    if(!memory_new(mem_stats, NULL, NULL, 1, sizeof(char)))
 #endif
+#else
+#if YAYA_MEMORY_MACRO_DEF
+    if(!mem_new(NULL, NULL, 1, sizeof(char)))
+#else
+    if(!memory_new(NULL, NULL, 1, sizeof(char)))
+#endif
+#endif
+    {
         printf("04 OK\n");
     }else{
         printf("ER\n");
     }
 
+
 #if YAYA_MEMORY_STATS_USE
-    if(!mem_new(mem_stats, NULL, ptr, 1)){
+#if YAYA_MEMORY_MACRO_DEF
+    if(!mem_new(mem_stats, NULL, ptr, 1, sizeof(char)))
 #else
-    if(!mem_new(NULL, ptr, 1)){
+    if(!memory_new(mem_stats, NULL, ptr, 1, sizeof(char)))
 #endif
+#else
+#if YAYA_MEMORY_MACRO_DEF
+    if(!mem_new(NULL, ptr, 1, sizeof(char)))
+#else
+    if(!memory_new(NULL, ptr, 1, sizeof(char)))
+#endif
+#endif
+    {
         printf("05 OK\n");
     }else{
         printf("ER\n");
     }
 
+
 #if YAYA_MEMORY_STATS_USE
-    if(!mem_new(mem_stats, ptr, ptr, 1)){
+#if YAYA_MEMORY_MACRO_DEF
+    if(!mem_new(mem_stats, ptr, ptr, 1, sizeof(char)))
 #else
-    if(!mem_new(ptr, ptr, 1)){
+    if(!memory_new(mem_stats, ptr, ptr, 1, sizeof(char)))
 #endif
+#else
+#if YAYA_MEMORY_MACRO_DEF
+    if(!mem_new(ptr, ptr, 1, sizeof(char)))
+#else
+    if(!memory_new(ptr, ptr, 1, sizeof(char)))
+#endif
+#endif
+    {
         printf("06 OK\n");
     }else{
         printf("ER\n");
     }
 
+
 #if YAYA_MEMORY_STATS_USE
-    if(!mem_del(mem_stats, ptr)){
+#if YAYA_MEMORY_MACRO_DEF
+    if(!mem_del(mem_stats, ptr))
 #else
-    if(!mem_del(ptr)){
+    if(!memory_del(mem_stats, ptr))
 #endif
+#else
+#if YAYA_MEMORY_MACRO_DEF
+    if(!mem_del(ptr))
+#else
+    if(!memory_del(ptr))
+#endif
+#endif
+    {
         printf("07 OK\n");
     }else{
         printf("ER\n");
     }
+
+
 #if YAYA_MEMORY_STATS_USE
-    if(!mem_del(mem_stats, &ptr)){
+#if YAYA_MEMORY_MACRO_DEF
+    if(!mem_del(mem_stats, &ptr))
 #else
-    if(!mem_del(&ptr)){
+    if(!memory_del(mem_stats, &ptr))
 #endif
+#else
+#if YAYA_MEMORY_MACRO_DEF
+    if(!mem_del(&ptr))
+#else
+    if(!memory_del(&ptr))
+#endif
+#endif
+    {
         printf("08 OK\n");
     }else{
         printf("ER\n");
     }
+
+
 #if YAYA_MEMORY_STATS_USE
-    if(mem_new(mem_stats, &ptr, ptr, 1)){
+#if YAYA_MEMORY_MACRO_DEF
+    if(mem_new(mem_stats, &ptr, ptr, 1, sizeof(char)))
 #else
-    if(mem_new(&ptr, ptr, 1)){
+    if(memory_new(mem_stats, &ptr, ptr, 1, sizeof(char)))
 #endif
+#else
+#if YAYA_MEMORY_MACRO_DEF
+    if(mem_new(&ptr, ptr, 1, sizeof(char)))
+#else
+    if(memory_new(&ptr, ptr, 1, sizeof(char)))
+#endif
+#endif
+    {
         printf("09 OK\n");
     }else{
         printf("ER\n");
     }
+
+
 #if YAYA_MEMORY_STATS_USE
-    if(mem_del(mem_stats, &ptr)){
+#if YAYA_MEMORY_MACRO_DEF
+    if(mem_del(mem_stats, &ptr))
 #else
-    if(mem_del(&ptr)){
+    if(memory_del(mem_stats, &ptr))
 #endif
+#else
+#if YAYA_MEMORY_MACRO_DEF
+    if(mem_del(&ptr))
+#else
+    if(memory_del(&ptr))
+#endif
+#endif
+    {
         printf("10 OK\n");
     }else{
         printf("ER\n");
     }
+
+
 #if YAYA_MEMORY_STATS_USE
-    if(!mem_del(mem_stats, &ptr)){
+#if YAYA_MEMORY_MACRO_DEF
+    if(!mem_del(mem_stats, &ptr))
 #else
-    if(!mem_del(&ptr)){
+    if(!memory_del(mem_stats, &ptr))
 #endif
+#else
+#if YAYA_MEMORY_MACRO_DEF
+    if(!mem_del(&ptr))
+#else
+    if(!memory_del(&ptr))
+#endif
+#endif
+    {
         printf("11 OK\n");
     }else{
         printf("ER\n");
     }
+
 
 #if YAYA_MEMORY_STATS_USE
     if(memory_stats_show(mem_stats)){
@@ -163,7 +279,6 @@ void test_param() {
     }else{
         printf("ER\n");
     }
-
 
     if(memory_stats_free(&mem_stats)){
         printf("13 OK\n");
@@ -177,6 +292,8 @@ void test_param() {
         printf("ER\n");
     }
 #endif
+
+
     printf("\n");
     fflush(stdout);
 }
@@ -192,46 +309,109 @@ void test_dump(){
 
     void *ptr = NULL;
 #if YAYA_MEMORY_STATS_USE
-    mem_new(mem_stats, &ptr, ptr, 16);
+#if YAYA_MEMORY_MACRO_DEF
+    mem_new(mem_stats, &ptr, ptr, 16, sizeof(char));
 #else
-    mem_new(&ptr, ptr, 16);
+    memory_new(mem_stats, &ptr, ptr, 16, sizeof(char));
 #endif
+#else
+#if YAYA_MEMORY_MACRO_DEF
+    mem_new(&ptr, ptr, 16, sizeof(char));
+#else
+    memory_new(&ptr, ptr, 16, sizeof(char));
+#endif
+#endif
+
     memory_dump(ptr, 0, 1, 16);
 
 #if YAYA_MEMORY_STATS_USE
-    mem_new(mem_stats, &ptr, ptr, 17);
+#if YAYA_MEMORY_MACRO_DEF
+    mem_new(mem_stats, &ptr, ptr, 17, sizeof(char));
 #else
-    mem_new(&ptr, ptr, 17);
+    memory_new(mem_stats, &ptr, ptr, 17, sizeof(char));
 #endif
+#else
+#if YAYA_MEMORY_MACRO_DEF
+    mem_new(&ptr, ptr, 17, sizeof(char));
+#else
+    memory_new(&ptr, ptr, 17, sizeof(char));
+#endif
+#endif
+
     memory_dump(ptr, 0, 1, 16);
 
 #if YAYA_MEMORY_STATS_USE
-    mem_new(mem_stats, &ptr, ptr, 42);
+#if YAYA_MEMORY_MACRO_DEF
+    mem_new(mem_stats, &ptr, ptr, 42, sizeof(char));
 #else
-    mem_new(&ptr, ptr, 42);
+    memory_new(mem_stats, &ptr, ptr, 42, sizeof(char));
 #endif
+#else
+#if YAYA_MEMORY_MACRO_DEF
+    mem_new(&ptr, ptr, 42, sizeof(char));
+#else
+    memory_new(&ptr, ptr, 42, sizeof(char));
+#endif
+#endif
+
+#if YAYA_MEMORY_MACRO_DEF
     mem_dump(ptr);
+#else
+    memory_dump(ptr, 0, 1, 16);
+#endif
 
     memory_fill(ptr);
+
+#if YAYA_MEMORY_MACRO_DEF
     mem_dump(ptr);
+#else
+    memory_dump(ptr, 0, 1, 16);
+#endif
 
 #if YAYA_MEMORY_STATS_USE
-    mem_new(mem_stats, &ptr, ptr, 35);
+#if YAYA_MEMORY_MACRO_DEF
+    mem_new(mem_stats, &ptr, ptr, 35, sizeof(char));
 #else
-    mem_new(&ptr, ptr, 35);
+    memory_new(mem_stats, &ptr, ptr, 35, sizeof(char));
 #endif
+#else
+#if YAYA_MEMORY_MACRO_DEF
+    mem_new(&ptr, ptr, 35, sizeof(char));
+#else
+    memory_new(&ptr, ptr, 35, sizeof(char));
+#endif
+#endif
+
+#if YAYA_MEMORY_MACRO_DEF
     mem_dump(ptr);
+#else
+    memory_dump(ptr, 0, 1, 16);
+#endif
 
     memory_fill(ptr);
+
+#if YAYA_MEMORY_MACRO_DEF
     mem_dump(ptr);
+#else
+    memory_dump(ptr, 0, 1, 16);
+#endif
 
     printf("\n");
 
 #if YAYA_MEMORY_STATS_USE
-    mem_new(mem_stats, &ptr, ptr, 33);
+#if YAYA_MEMORY_MACRO_DEF
+    mem_new(mem_stats, &ptr, ptr, 33, sizeof(char));
 #else
-    mem_new(&ptr, ptr, 33);
+    memory_new(mem_stats, &ptr, ptr, 33, sizeof(char));
 #endif
+#else
+#if YAYA_MEMORY_MACRO_DEF
+    mem_new(&ptr, ptr, 33, sizeof(char));
+#else
+    memory_new(&ptr, ptr, 33, sizeof(char));
+#endif
+#endif
+
     memory_fill(ptr);
 
     memory_dump(ptr, 0, 1, 4);
@@ -244,10 +424,19 @@ void test_dump(){
 
     void *ptr_save = ptr;
 #if YAYA_MEMORY_STATS_USE
+#if YAYA_MEMORY_MACRO_DEF
     mem_del(mem_stats, &ptr);
 #else
-    mem_del(&ptr);
+    memory_del(mem_stats, &ptr);
 #endif
+#else
+#if YAYA_MEMORY_MACRO_DEF
+    mem_del(&ptr);
+#else
+    memory_del(&ptr);
+#endif
+#endif
+
     memory_dump(ptr_save, 33, 1, 64);
 
 #if YAYA_MEMORY_STATS_USE
@@ -290,9 +479,10 @@ void test_look(){
 
     memory_look(&t, 5, sizeof(S), ({ (intmax_t[]) { 3, 1, 4, 8, 16, 8, 8, 16, 8, 24, 32, 21, 11, 32, sizeof(void*) * __CHAR_BIT__, 0}; }) );
 
+#if YAYA_MEMORY_MACRO_DEF
     memory_look(&t, 5, sizeof(S), mem_list(3, 1, 4, -8, 16, 8, 8, 16, 8, -24, 32, 21, 11, 32, 64));
-
     mem_look(&t, 5, S, mem_list(3, 1, 4, -8, 16, 8, 8, 16, 8, -24, 32, 21, 11, 32, 64));
+#endif
 
     printf("\n");
     fflush(stdout);
@@ -305,9 +495,12 @@ void test_swap() {
         int8_t x = 0;
         int8_t y = 1;
 
+
+#if YAYA_MEMORY_MACRO_DEF
+        mem_swap(&x, &y, sizeof(int8_t));
+#else
         memory_swap(&x, &y, sizeof(int8_t));
-        mem_swap(&x, &y, sizeof(int8_t));
-        mem_swap(&x, &y, sizeof(int8_t));
+#endif
 
         if(  1 == x &&  0 == y){
             printf("01 OK\n");
@@ -320,9 +513,11 @@ void test_swap() {
         int16_t x = -1;
         int16_t y = +1;
 
+#if YAYA_MEMORY_MACRO_DEF
+        mem_swap(&x, &y, sizeof(int16_t));
+#else
         memory_swap(&x, &y, sizeof(int16_t));
-        mem_swap(&x, &y, sizeof(int16_t));
-        mem_swap(&x, &y, sizeof(int16_t));
+#endif
 
         if( +1 == x && -1 == y){
             printf("02 OK\n");
@@ -335,9 +530,11 @@ void test_swap() {
         int32_t x = -136446856;
         int32_t y = +978321345;
 
+#if YAYA_MEMORY_MACRO_DEF
+        mem_swap(&x, &y, sizeof(int32_t));
+#else
         memory_swap(&x, &y, sizeof(int32_t));
-        mem_swap(&x, &y, sizeof(int32_t));
-        mem_swap(&x, &y, sizeof(int32_t));
+#endif
 
         if( +978321345 ==  x && -136446856 == y){
             printf("03 OK\n");
@@ -356,7 +553,19 @@ void test_shuf() {
     const int8_t count_test = 10;
     int8_t *mas = NULL;
 
-    mem_new(NULL, &mas, NULL, (size_t)(count_mas) * sizeof(int8_t));
+#if YAYA_MEMORY_STATS_USE
+#if YAYA_MEMORY_MACRO_DEF
+    mem_new(NULL, &mas, NULL, (size_t)(count_mas), sizeof(int8_t));
+#else
+    memory_new(NULL, (void**)(&mas), NULL, (size_t)(count_mas), sizeof(int8_t));
+#endif
+#else
+#if YAYA_MEMORY_MACRO_DEF
+    mem_new(&mas, NULL, (size_t)(count_mas), sizeof(int8_t));
+#else
+    memory_new((void**)(&mas), NULL, (size_t)(count_mas), sizeof(int8_t));
+#endif
+#endif
 
     for(int8_t i = 0; i < count_mas; i++){
         mas[i] = i;
@@ -373,8 +582,11 @@ void test_shuf() {
             mas[i] = i;
         }
 
+#if YAYA_MEMORY_MACRO_DEF
+        mem_shuf(mas, (size_t)(count_mas), sizeof(int8_t), (uint)(a + 1));
+#else
         memory_shuf(mas, (size_t)(count_mas), sizeof(int8_t), (uint)(a + 1), (void(*)(unsigned int))srand, (int(*)(void)) rand);
-        mem_shuf(mas, (size_t)(count_mas), sizeof(int8_t), (uint)(a + 2));
+#endif
 
         for(int8_t i = 0; i < count_mas; i++){
             if(mas[i] != i){
@@ -396,7 +608,19 @@ void test_shuf() {
         printf("ER\n");
     }
 
+#if YAYA_MEMORY_STATS_USE
+#if YAYA_MEMORY_MACRO_DEF
     mem_del(NULL, &mas);
+#else
+    memory_del(NULL, (void**)(&mas));
+#endif
+#else
+#if YAYA_MEMORY_MACRO_DEF
+    mem_del(&mas);
+#else
+    memory_del((void**)(&mas));
+#endif
+#endif
 
     printf("\n");
     fflush(stdout);
@@ -410,17 +634,31 @@ void test_sort() {
     const int8_t count_mas = 10;
     int8_t *mas = {0};
 
-    mem_new(NULL, &mas, NULL, (size_t)(count_mas) * sizeof(int8_t));
+#if YAYA_MEMORY_STATS_USE
+#if YAYA_MEMORY_MACRO_DEF
+    mem_new(NULL, &mas, NULL, (size_t)(count_mas), sizeof(int8_t));
+#else
+    memory_new(NULL, (void**)(&mas), NULL, (size_t)(count_mas), sizeof(int8_t));
+#endif
+#else
+#if YAYA_MEMORY_MACRO_DEF
+    mem_new(&mas, NULL, (size_t)(count_mas), sizeof(int8_t));
+#else
+    memory_new((void**)(&mas), NULL, (size_t)(count_mas), sizeof(int8_t));
+#endif
+#endif
 
     for(int8_t i = 0; i < count_mas; i++){
         mas[i] = i;
     }
 
-    memory_shuf(mas, (size_t)(count_mas), sizeof(int8_t), 1, (void(*)(unsigned int))srand, (int(*)(void)) rand);
-    memory_sort(mas, (size_t)(count_mas), sizeof(int8_t), (int(*) (const void *, const void *)) comp);
-
+#if YAYA_MEMORY_MACRO_DEF
     mem_shuf(mas, (size_t)(count_mas), sizeof(int8_t), 1);
     mem_sort(mas, (size_t)(count_mas), sizeof(int8_t), comp);
+#else
+    memory_shuf(mas, (size_t)(count_mas), sizeof(int8_t), 1, (void(*)(unsigned int))srand, (int(*)(void)) rand);
+    memory_sort(mas, (size_t)(count_mas), sizeof(int8_t), (int(*)(const void *, const void *)) comp);
+#endif
 
     int8_t count_sort = 0;
     for(int8_t i = 0; i < count_mas; i++){
@@ -435,13 +673,24 @@ void test_sort() {
         printf("ER\n");
     }
 
+#if YAYA_MEMORY_STATS_USE
+#if YAYA_MEMORY_MACRO_DEF
     mem_del(NULL, &mas);
+#else
+    memory_del(NULL, (void**)(&mas));
+#endif
+#else
+#if YAYA_MEMORY_MACRO_DEF
+    mem_del(&mas);
+#else
+    memory_del((void**)(&mas));
+#endif
+#endif
 
     printf("\n");
     fflush(stdout);
 }
 
-// TODO: mem_new(NULL, &mas, NULL, count_mas * sizeof(int8_t)); --> mem_new(NULL, &mas, NULL, count_mas, sizeof(int8_t));
 int main()
 {
     test_param();
