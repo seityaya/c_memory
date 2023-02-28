@@ -9,6 +9,7 @@
 #include "malloc.h"
 #include "stdio.h"
 #include "string.h"
+#include "stdlib.h"
 
 #include "yaya_memory.h"
 
@@ -269,6 +270,39 @@ size_t memory_size(void *ptr)
     return mem_info->memory_request;
 }
 
+void memory_swap(void *x, void *y, size_t size)
+{
+    char temp[size];
+    memcpy(temp, y,    size);
+    memcpy(y,    x,    size);
+    memcpy(x,    temp, size);
+}
+
+void memory_shuf(void *base, size_t count, size_t size, unsigned int seed, void (*set_seed)(unsigned int), int (*get_rand)(void))
+{
+    if(get_rand == NULL){
+        get_rand = (int (*)(void))(rand);
+    }
+    if(set_seed == NULL){
+        set_seed = (void(*)(unsigned int))(srand);
+    }
+    set_seed(seed);
+    for(size_t i = 0; i < count; i++){
+        size_t r =  (((size_t)get_rand()) % (count - i + 1)) ;
+        memory_swap(base + i * size, base + r * size, size);
+    }
+    for(size_t i = 0; i < count; i++){
+        size_t a = (((size_t)get_rand()) % (count)) ;
+        size_t b = (((size_t)get_rand()) % (count)) ;
+        memory_swap(base + a * size, base + b * size, size);
+    }
+}
+
+void memory_sort(void *base, size_t count, size_t size, int (*compare)(const void *, const void *))
+{
+    qsort(base, count, size, compare);
+}
+
 bool memory_dump(void *ptr, size_t len, uintmax_t catbyte, uintmax_t column)
 {
     /*Проверка, что указатель не NULL*/
@@ -391,33 +425,33 @@ L1:
     return true;
 }
 
-static uintmax_t __bit_sequence(void *ptr, uintmax_t offset, uintmax_t len){
+static uintmax_t bit_sequence(void *ptr, uintmax_t offset, uintmax_t len){
     uint8_t *bytes = (uint8_t*)ptr;
     uintmax_t result = 0;
     uint32_t result32_1 = 0;
     uint32_t result32_2 = 0;
 
-    if(len == 0){
+    if(len == 0U){
         return result;
     }
-    if(len <= 16){
-        for (uintmax_t i = 0; i < len; i++) {
+    if(len <= 16U){
+        for (uintmax_t i = 0U; i < len; i++) {
             result |= ((bytes[(offset + i) / 8U] >> ((offset + i) % 8U)) & 1U) << i;
         }
         return result;
     }
-    if(len <= 32){
-        for (uintmax_t i = 0; i < len; i++) {
+    if(len <= 32U){
+        for (uintmax_t i = 0U; i < len; i++) {
             result32_1 |= ((bytes[(offset + i) / 8U] >> ((offset + i) % 8U)) & 1U) << i;
         }
         result = result32_1;
         return result;
     }
-    if(len <= 64){
-        for (uintmax_t i = 0; i < 32; i++) {
+    if(len <= 64U){
+        for (uintmax_t i = 0U; i < 32U; i++) {
             result32_1 |= ((bytes[(offset + i) / 8U] >> ((offset + i) % 8U)) & 1U) << i;
         }
-        for (uintmax_t i = 0; i < 64U - (len - 32U); i++) {
+        for (uintmax_t i = 0U; i < 64U - (len - 32U); i++) {
             result32_2 |= ((bytes[(offset + 32U + i) / 8U] >> ((offset + i) % 8U)) & 1U) << i;
         }
         result = (uintmax_t)result32_1 | ((uintmax_t)result32_2) << 32U;
@@ -540,7 +574,7 @@ bool memory_look(void *ptr, uintmax_t struct_count, size_t struct_size, intmax_t
                 intmax_t sum = 0;
                 for(intmax_t s = 0; s < list_count; s++){
                     if(list_bit_len[s] > 0){
-                        uint64_t res = __bit_sequence(ptr, (struct_size * __CHAR_BIT__ * i) + sum, list_bit_len[s]);
+                        uint64_t res = bit_sequence(ptr, (struct_size * __CHAR_BIT__ * i) + sum, list_bit_len[s]);
                         printf("%0*" PRIx64 " ", (int)(list_bit_len[s] / 4 + ((list_bit_len[s] < 4 || list_bit_len[s] % 4 > 0) ? 1 : 0)), res);
                         sum += list_bit_len[s];
                     }else{

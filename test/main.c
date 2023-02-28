@@ -10,6 +10,7 @@
 #include "malloc.h"
 #include "stddef.h"
 #include "string.h"
+#include "stdlib.h"
 
 #include "yaya_memory.h"
 
@@ -266,7 +267,7 @@ void test_look(){
         uint8_t  x3:4;
         uint16_t a;
         int8_t   b;
-        int16_t  c;
+        uint16_t c;
         uint8_t  d;
         int32_t  e;
         uint32_t f1:21;
@@ -278,11 +279,11 @@ void test_look(){
     printf("%p\n", &a);
 
     S t[] = {
-        {7, 1, 10, 5,  -1,       3,   1,   0, 17, 15,      3},
-        {7, 1, 10, 5,  -1,       2,   1,   1, 17, 15,     &a},
-        {7, 1, 10, 5,  -1,       1,   1,  -1, 17, 15,     &t},
-        {7, 1, 10, 5, 0-1,       0, 0-1,   2, 17, 15,     &t},
-        {7, 1, 10, 5,   0,  0xFFFF,   0,  -2, 17, 15,&t[0].a}
+        {7, 1, 10, 5,  -1,       3,   1,   0, 17, 15, (int*)(3)},
+        {7, 1, 10, 5,  -1,       2,   1,   1, 17, 15,        &a},
+        {7, 1, 10, 5,  -1,       1,   1,  -1, 17, 15,        &t},
+        {7, 1, 10, 5, 0-1,       0, 255,   2, 17, 15,        &t},
+        {7, 1, 10, 5,   0,  0xFFFF,   0,  -2, 17, 15,   &t[0].a}
     };
 
     memory_dump(t, sizeof(S) * 5, 1, 16);
@@ -297,10 +298,157 @@ void test_look(){
     fflush(stdout);
 }
 
+void test_swap() {
+    printf("test_swap\n");
+
+    {
+        int8_t x = 0;
+        int8_t y = 1;
+
+        memory_swap(&x, &y, sizeof(int8_t));
+        mem_swap(&x, &y, sizeof(int8_t));
+        mem_swap(&x, &y, sizeof(int8_t));
+
+        if(  1 == x &&  0 == y){
+            printf("01 OK\n");
+        }else{
+            printf("ER\n");
+        }
+    }
+
+    {
+        int16_t x = -1;
+        int16_t y = +1;
+
+        memory_swap(&x, &y, sizeof(int16_t));
+        mem_swap(&x, &y, sizeof(int16_t));
+        mem_swap(&x, &y, sizeof(int16_t));
+
+        if( +1 == x && -1 == y){
+            printf("02 OK\n");
+        }else{
+            printf("ER\n");
+        }
+    }
+
+    {
+        int32_t x = -136446856;
+        int32_t y = +978321345;
+
+        memory_swap(&x, &y, sizeof(int32_t));
+        mem_swap(&x, &y, sizeof(int32_t));
+        mem_swap(&x, &y, sizeof(int32_t));
+
+        if( +978321345 ==  x && -136446856 == y){
+            printf("03 OK\n");
+        }else{
+            printf("ER\n");
+        }
+    }
+
+    printf("\n");
+    fflush(stdout);
+}
+
+void test_shuf() {
+    printf("test_shuf\n");
+    const int8_t count_mas = 10;
+    const int8_t count_test = 10;
+    int8_t *mas = NULL;
+
+    mem_new(NULL, &mas, NULL, (size_t)(count_mas) * sizeof(int8_t));
+
+    for(int8_t i = 0; i < count_mas; i++){
+        mas[i] = i;
+    }
+
+    for(int8_t i = 0; i < count_mas; i++){
+        printf("%"PRIi8 " ", mas[i]);
+    }
+    printf("\n");
+
+    int32_t count_shuf = 0;
+    for(int8_t a = 0; a < count_test; a++){
+        for(int8_t i = 0; i < count_mas; i++){
+            mas[i] = i;
+        }
+
+        memory_shuf(mas, (size_t)(count_mas), sizeof(int8_t), (uint)(a + 1), (void(*)(unsigned int))srand, (int(*)(void)) rand);
+        mem_shuf(mas, (size_t)(count_mas), sizeof(int8_t), (uint)(a + 2));
+
+        for(int8_t i = 0; i < count_mas; i++){
+            if(mas[i] != i){
+                count_shuf++;
+            }
+        }
+
+        for(int8_t i = 0; i < count_mas; i++){
+            printf("%"PRIi8 " ", mas[i]);
+        }
+        printf("\n");
+    }
+
+    float mean = ((float)(count_shuf) / (float)(count_mas * count_test));
+
+    if(mean > 0.8){
+        printf("OK\n");
+    }else{
+        printf("ER\n");
+    }
+
+    mem_del(NULL, &mas);
+
+    printf("\n");
+    fflush(stdout);
+}
+void test_sort() {
+    printf("test_sort\n");
+    int comp (const int8_t *i, const int8_t *j) {
+        return *i - *j;
+    }
+
+    const int8_t count_mas = 10;
+    int8_t *mas = {0};
+
+    mem_new(NULL, &mas, NULL, (size_t)(count_mas) * sizeof(int8_t));
+
+    for(int8_t i = 0; i < count_mas; i++){
+        mas[i] = i;
+    }
+
+    memory_shuf(mas, (size_t)(count_mas), sizeof(int8_t), 1, (void(*)(unsigned int))srand, (int(*)(void)) rand);
+    memory_sort(mas, (size_t)(count_mas), sizeof(int8_t), (int(*) (const void *, const void *)) comp);
+
+    mem_shuf(mas, (size_t)(count_mas), sizeof(int8_t), 1);
+    mem_sort(mas, (size_t)(count_mas), sizeof(int8_t), comp);
+
+    int8_t count_sort = 0;
+    for(int8_t i = 0; i < count_mas; i++){
+        if(mas[i] == i){
+            count_sort++;
+        }
+    }
+
+    if(count_mas == count_sort){
+        printf("OK\n");
+    }else{
+        printf("ER\n");
+    }
+
+    mem_del(NULL, &mas);
+
+    printf("\n");
+    fflush(stdout);
+}
+
+// TODO: mem_new(NULL, &mas, NULL, count_mas * sizeof(int8_t)); --> mem_new(NULL, &mas, NULL, count_mas, sizeof(int8_t));
 int main()
 {
     test_param();
     test_dump();
     test_look();
+    test_swap();
+    test_shuf();
+    test_sort();
     return 0;
 }
