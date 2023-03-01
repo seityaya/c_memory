@@ -65,32 +65,42 @@ bool   memory_new(void **ptr, void *old_ptr, const size_t count, const size_t si
 bool   memory_del(void **ptr);
 #endif /*YAYA_MEMORY_STATS_USE*/
 
-bool   memory_zero(void *ptr);
-size_t memory_size(void *ptr);
-void   memory_swap(void *x, void *y, size_t size);
-void   memory_shuf(void *base, size_t count, size_t size, unsigned int seed, void (*set_seed)(unsigned int), int (*get_rand)(void));
-void   memory_sort(void *base, size_t count, size_t size, int (*compare)(const void *, const void *));
-bool   memory_dump(void *ptr, size_t len, uintmax_t catbyte, uintmax_t column_mod2);
-bool   memory_look(void *ptr, uintmax_t struct_count, size_t struct_size, intmax_t list_bit_len[]);
+bool     memory_zero(void *ptr);
+size_t   memory_size(void *ptr);
+intmax_t memory_step(void *ptr_beg, void *ptr_bend, size_t size);
+
+typedef int  (*mem_compare_fn_t)(const void *, const void *);
+typedef int  (*mem_rand_fn_t)(void);
+typedef void (*mem_seed_fn_t)(unsigned int);
+
+bool memory_swap(void *x, void *y, size_t size);
+bool memory_shuf(void *base, size_t count, size_t size, unsigned int seed, mem_seed_fn_t set_seed, mem_rand_fn_t get_rand);
+bool memory_sort(void *base, size_t count, size_t size, mem_compare_fn_t compare);
+bool memory_bsearch(void **search_res, void *key, void *base, size_t count, size_t size, mem_compare_fn_t compare);
+bool memory_rsearch(void **search_res, void *key, void *base, size_t count, size_t size, mem_compare_fn_t compare);
+bool memory_dump(void *ptr, size_t len, uintmax_t catbyte, uintmax_t column_mod2);
+bool memory_look(void *ptr, size_t struct_count, size_t struct_size, intmax_t list_bit_len[]);
 
 #if YAYA_MEMORY_MACRO_DEF
 #if YAYA_MEMORY_STATS_USE
-#define mem_new(I, N, O, C, S)   memory_new((I), (void**)(N), (void*)(O), (C), (S))
-#define mem_del(I, N)            memory_del((I), (void**)(N))
+#define mem_new(I, N, O, C, S)            memory_new((I), (void**)(N), (void*)(O), (size_t)(C), (size_t)(S))
+#define mem_del(I, N)                     memory_del((I), (void**)(N))
 #else
-#define mem_new(N, O, C, S)      memory_new((void**)(N), (void*)(O), (C), (S))
-#define mem_del(N)               memory_del((void**)(N))
+#define mem_new(N, O, C, S)               memory_new((void**)(N), (void*)(O), (size_t)(C), (size_t)(S))
+#define mem_del(N)                        memory_del((void**)(N))
 #endif /*YAYA_MEMORY_STATS_USE*/
 
-#define mem_zero(P)              memory_zero((void*)(P))
-#define mem_size(P)              memory_size((void*)(P))
-#define mem_swap(x, y, S)        memory_swap((void*)(x), (void*)(y), (S))
-#define mem_shuf(P, C, S, seed)  memory_shuf((void*)(P), (C), (S), (seed), (NULL), (NULL))
-#define mem_sort(P, C, S, Fcomp) memory_sort((void*)(P), (C), (S), (int(*) (const void *, const void *)) (Fcomp))
-#define mem_dump(P)              memory_dump((void*)(P), 0, 1, 16)
-#define mem_look(P, C, S, M)     memory_look((void*)(P), C, sizeof(S), M)
-#define mem_list(...)            ({ (intmax_t[]){__VA_ARGS__, 0}; })
-
+#define mem_zero(P)                       memory_zero((void*)(P))
+#define mem_size(P)                       memory_size((void*)(P))
+#define mem_step(P, p, S)                 memory_step((void*)(P), (void*)(p), (size_t)(S))
+#define mem_swap(x, y, S)                 memory_swap((void*)(x), (void*)(y), (size_t)(S))
+#define mem_shuf(P, C, S, seed)           memory_shuf((void*)(P), (size_t)(C), (size_t)(S), (seed), (NULL), (NULL))
+#define mem_sort(P, C, S, Fcomp)          memory_sort((void*)(P), (size_t)(C), (size_t)(S), (mem_compare_fn_t)(Fcomp))
+#define mem_bsearch(R, K, P, C, S, Fcomp) memory_bsearch((void**)(R), (void*)(K), (void*)(P), (size_t)(C), (size_t)(S), (mem_compare_fn_t)(Fcomp))
+#define mem_rsearch(R, K, P, C, S, Fcomp) memory_rsearch((void**)(R), (void*)(K), (void*)(P), (size_t)(C), (size_t)(S), (mem_compare_fn_t)(Fcomp))
+#define mem_dump(P)                       memory_dump((void*)(P), 0, 1, 16)
+#define mem_look(P, C, S, M)              memory_look((void*)(P), (size_t)(C), sizeof(S), M)
 #endif /*YAYA_MEMORY_MACRO_DEF*/
+#define mem_list(...)                     ({ (intmax_t[]){__VA_ARGS__, 0}; })
 
 #endif /*YAYA_MEMORY_H*/

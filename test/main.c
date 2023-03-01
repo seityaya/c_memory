@@ -9,8 +9,8 @@
 #include "inttypes.h"
 #include "malloc.h"
 #include "stddef.h"
-#include "string.h"
 #include "stdlib.h"
+#include "string.h"
 
 #include "yaya_memory.h"
 
@@ -293,7 +293,6 @@ void test_param() {
     }
 #endif
 
-
     printf("\n");
     fflush(stdout);
 }
@@ -450,7 +449,7 @@ void test_dump(){
 void test_look(){
     printf("test_look\n");
 
-    typedef struct S{
+    typedef struct S {
         uint8_t  x1:3;
         uint8_t  x2:1;
         uint8_t  x3:4;
@@ -478,9 +477,9 @@ void test_look(){
     memory_dump(t, sizeof(S) * 5, 1, 16);
 
     memory_look(&t, 5, sizeof(S), ({ (intmax_t[]) { 3, 1, 4, 8, 16, 8, 8, 16, 8, 24, 32, 21, 11, 32, sizeof(void*) * __CHAR_BIT__, 0}; }) );
+    memory_look(&t, 5, sizeof(S), mem_list(3, 1, 4, -8, 16, 8, 8, 16, 8, -24, 32, 21, 11, 32, 64));
 
 #if YAYA_MEMORY_MACRO_DEF
-    memory_look(&t, 5, sizeof(S), mem_list(3, 1, 4, -8, 16, 8, 8, 16, 8, -24, 32, 21, 11, 32, 64));
     mem_look(&t, 5, S, mem_list(3, 1, 4, -8, 16, 8, 8, 16, 8, -24, 32, 21, 11, 32, 64));
 #endif
 
@@ -550,18 +549,18 @@ void test_swap() {
 void test_shuf() {
     printf("test_shuf\n");
     const int8_t count_mas = 10;
-    const int8_t count_test = 10;
+    const int8_t count_test = 127;
     int8_t *mas = NULL;
 
 #if YAYA_MEMORY_STATS_USE
 #if YAYA_MEMORY_MACRO_DEF
-    mem_new(NULL, &mas, NULL, (size_t)(count_mas), sizeof(int8_t));
+    mem_new(NULL, &mas, NULL, count_mas, sizeof(int8_t));
 #else
     memory_new(NULL, (void**)(&mas), NULL, (size_t)(count_mas), sizeof(int8_t));
 #endif
 #else
 #if YAYA_MEMORY_MACRO_DEF
-    mem_new(&mas, NULL, (size_t)(count_mas), sizeof(int8_t));
+    mem_new(&mas, NULL, count_mas, sizeof(int8_t));
 #else
     memory_new((void**)(&mas), NULL, (size_t)(count_mas), sizeof(int8_t));
 #endif
@@ -583,7 +582,7 @@ void test_shuf() {
         }
 
 #if YAYA_MEMORY_MACRO_DEF
-        mem_shuf(mas, (size_t)(count_mas), sizeof(int8_t), (uint)(a + 1));
+        mem_shuf(mas, count_mas, sizeof(int8_t), (uint)(a + 1));
 #else
         memory_shuf(mas, (size_t)(count_mas), sizeof(int8_t), (uint)(a + 1), (void(*)(unsigned int))srand, (int(*)(void)) rand);
 #endif
@@ -625,24 +624,26 @@ void test_shuf() {
     printf("\n");
     fflush(stdout);
 }
+
+static int comp (const int8_t *i, const int8_t *j) {
+    return *i - *j;
+}
+
 void test_sort() {
     printf("test_sort\n");
-    int comp (const int8_t *i, const int8_t *j) {
-        return *i - *j;
-    }
 
     const int8_t count_mas = 10;
     int8_t *mas = {0};
 
 #if YAYA_MEMORY_STATS_USE
 #if YAYA_MEMORY_MACRO_DEF
-    mem_new(NULL, &mas, NULL, (size_t)(count_mas), sizeof(int8_t));
+    mem_new(NULL, &mas, NULL, count_mas, sizeof(int8_t));
 #else
     memory_new(NULL, (void**)(&mas), NULL, (size_t)(count_mas), sizeof(int8_t));
 #endif
 #else
 #if YAYA_MEMORY_MACRO_DEF
-    mem_new(&mas, NULL, (size_t)(count_mas), sizeof(int8_t));
+    mem_new(&mas, NULL, count_mas, sizeof(int8_t));
 #else
     memory_new((void**)(&mas), NULL, (size_t)(count_mas), sizeof(int8_t));
 #endif
@@ -653,11 +654,11 @@ void test_sort() {
     }
 
 #if YAYA_MEMORY_MACRO_DEF
-    mem_shuf(mas, (size_t)(count_mas), sizeof(int8_t), 1);
-    mem_sort(mas, (size_t)(count_mas), sizeof(int8_t), comp);
+    mem_shuf(mas, count_mas, sizeof(int8_t), 1);
+    mem_sort(mas, count_mas, sizeof(int8_t), comp);
 #else
     memory_shuf(mas, (size_t)(count_mas), sizeof(int8_t), 1, (void(*)(unsigned int))srand, (int(*)(void)) rand);
-    memory_sort(mas, (size_t)(count_mas), sizeof(int8_t), (int(*)(const void *, const void *)) comp);
+    memory_sort(mas, (size_t)(count_mas), sizeof(int8_t), (mem_compare_fn_t)(comp));
 #endif
 
     int8_t count_sort = 0;
@@ -691,6 +692,184 @@ void test_sort() {
     fflush(stdout);
 }
 
+void test_search() {
+    printf("test_search\n");
+
+    const int8_t count_mas = 10;
+
+    int8_t *mas = NULL;
+#if YAYA_MEMORY_STATS_USE
+#if YAYA_MEMORY_MACRO_DEF
+    mem_new(NULL, &mas, NULL, count_mas, sizeof(int8_t));
+#else
+    memory_new(NULL, (void**)(&mas), NULL, (size_t)(count_mas), sizeof(int8_t));
+#endif
+#else
+#if YAYA_MEMORY_MACRO_DEF
+    mem_new(&mas, NULL, count_mas, sizeof(int8_t));
+#else
+    memory_new((void**)(&mas), NULL, (size_t)(count_mas), sizeof(int8_t));
+#endif
+#endif
+
+    for(int8_t i = 0; i < count_mas; i++){
+        mas[i] = i;
+    }
+
+    int8_t value = 11;
+    int8_t *serch_r = NULL;
+    int8_t *serch_b = NULL;
+
+#if YAYA_MEMORY_MACRO_DEF
+    if( ! mem_rsearch(&serch_r, &value, mas, count_mas, sizeof(int8_t), comp))
+#else
+    if( ! memory_rsearch((void**)&serch_r, &value, mas, (size_t)(count_mas), sizeof(int8_t), (mem_compare_fn_t)(comp)))
+#endif
+    {
+        printf("1 OK\n");
+    }else{
+        printf("ER\n");
+    }
+
+#if YAYA_MEMORY_MACRO_DEF
+    if( ! mem_bsearch(&serch_b, &value, mas, count_mas, sizeof(int8_t), comp))
+#else
+    if( ! memory_bsearch((void**)&serch_r, &value, mas, (size_t)(count_mas), sizeof(int8_t), (mem_compare_fn_t)(comp)))
+#endif
+    {
+        printf("2 OK\n");
+    }else{
+        printf("ER\n");
+    }
+
+    if(serch_r == NULL && serch_b == NULL){
+        printf("3 OK\n");
+    }else{
+        printf("ER\n");
+    }
+
+    value = 9;
+#if YAYA_MEMORY_MACRO_DEF
+    if(mem_rsearch(&serch_r, &value, mas, count_mas, sizeof(int8_t), comp))
+#else
+    if(memory_rsearch((void**)&serch_r, &value, mas, (size_t)(count_mas), sizeof(int8_t), (mem_compare_fn_t)(comp)))
+#endif
+    {
+        printf("4 OK\n");
+    }else{
+        printf("ER\n");
+    }
+#if YAYA_MEMORY_MACRO_DEF
+    if(mem_bsearch(&serch_b, &value, mas, count_mas, sizeof(int8_t), comp))
+#else
+    if(memory_bsearch((void**)&serch_b, &value, mas, (size_t)(count_mas), sizeof(int8_t), (mem_compare_fn_t)(comp)))
+#endif
+    {
+        printf("5 OK\n");
+    }else{
+        printf("ER\n");
+    }
+
+    if(serch_r == &mas[value] && serch_b == &mas[value]){
+        printf("6 OK\n");
+    }else{
+        printf("ER\n");
+    }
+
+#if YAYA_MEMORY_MACRO_DEF
+    mem_shuf(mas, count_mas, sizeof(int8_t), 1);
+#else
+    memory_shuf(mas, (size_t)(count_mas), sizeof(int8_t), 1, NULL, NULL);
+#endif
+
+    for(int8_t i = 0; i < count_mas; i++){
+        printf("%" PRIi8 " ", mas[i]);
+    }
+    printf("\n");
+    int8_t position = 8;
+
+#if YAYA_MEMORY_MACRO_DEF
+    if(mem_rsearch(&serch_r, &value, mas, count_mas, sizeof(int8_t), comp))
+#else
+    if(memory_rsearch((void**)&serch_r, &value, mas, (size_t)(count_mas), sizeof(int8_t), (mem_compare_fn_t)(comp)))
+#endif
+    {
+        printf("7 OK\n");
+    }else{
+        printf("ER\n");
+    }
+
+    if(serch_r == &mas[position]){
+        printf("8 OK\n");
+    }else{
+        printf("ER\n");
+    }
+
+
+#if YAYA_MEMORY_MACRO_DEF
+    if(mem_bsearch(&serch_b, &value, mas, count_mas, sizeof(int8_t), comp))
+#else
+    if(memory_bsearch((void**)&serch_b, &value, mas, (size_t)(count_mas), sizeof(int8_t), (mem_compare_fn_t)(comp)))
+#endif
+    {
+        printf("8 OK\n");
+    }else{
+        printf("ER\n");
+    }
+
+    if(serch_b == &mas[position]){
+        printf("9 OK\n");
+    }else{
+        printf("ER\n");
+    }
+
+#if YAYA_MEMORY_MACRO_DEF
+    mem_sort(mas, count_mas, sizeof(int8_t), comp);
+#else
+    memory_sort(mas, (size_t)(count_mas), sizeof(int8_t), (mem_compare_fn_t)(comp));
+#endif
+
+#if YAYA_MEMORY_MACRO_DEF
+    if(mem_bsearch(&serch_b, &value, mas, count_mas, sizeof(int8_t), comp))
+#else
+    if(memory_bsearch((void**)&serch_b, &value, mas, (size_t)(count_mas), sizeof(int8_t), (mem_compare_fn_t)(comp)))
+#endif
+    {
+        printf("A OK\n");
+    }else{
+        printf("ER\n");
+    }
+
+    if(serch_b == &mas[value]){
+        printf("B OK\n");
+    }else{
+        printf("ER\n");
+    }
+
+    if(memory_step(mas, serch_b, sizeof(int8_t)) == value){
+        printf("C OK\n");
+    }else{
+        printf("ER\n");
+    }
+
+#if YAYA_MEMORY_STATS_USE
+#if YAYA_MEMORY_MACRO_DEF
+    mem_del(NULL, &mas);
+#else
+    memory_del(NULL, (void**)(&mas));
+#endif
+#else
+#if YAYA_MEMORY_MACRO_DEF
+    mem_del(&mas);
+#else
+    memory_del((void**)(&mas));
+#endif
+#endif
+
+    printf("\n");
+    fflush(stdout);
+}
+
 int main()
 {
     test_param();
@@ -699,5 +878,6 @@ int main()
     test_swap();
     test_shuf();
     test_sort();
+    test_search();
     return 0;
 }

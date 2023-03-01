@@ -11,7 +11,7 @@ add_definitions(-std=c11)
 
 add_compile_options(-Wall -Wfatal-errors -Wconversion)
 
-set(VERSION 0.6)
+set(VERSION 0.8)
 set(PROJECT_NAME memory_test)
 project(${PROJECT_NAME})
 

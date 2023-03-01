@@ -9,7 +9,7 @@ cmake_minimum_required(VERSION 3.0)
 set(CMAKE_C_STANDARD 11)
 add_definitions(-std=c11)
 
-set(VERSION 0.6)
+set(VERSION 0.8)
 set(PROJECT_NAME yaya_memory)
 project(${PROJECT_NAME})
 
