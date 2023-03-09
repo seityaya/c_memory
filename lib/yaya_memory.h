@@ -8,6 +8,7 @@
 #ifndef YAYA_MEMORY_H
 #define YAYA_MEMORY_H
 
+#include "stdalign.h"
 #include "stdint.h"
 #include "stdbool.h"
 #include "stddef.h"
@@ -60,9 +61,9 @@ bool memory_stats_show(mem_stats_t *mem_stats);
 #endif /*YAYA_MEMORY_STATS_USE*/
 
 typedef struct mem_info_t {
-    size_t memory_request;  //запросили
-    size_t memory_produce;  //выдали
-    uint8_t  memory_ptr[];  //указатель на начало
+    size_t memory_request;                       //запросили
+    size_t memory_produce;                       //выдали
+    alignas(max_align_t) uint8_t  memory_ptr[];  //указатель на начало
 }mem_info_t;
 
 #if YAYA_MEMORY_STATS_USE
@@ -88,6 +89,7 @@ bool memory_bsearch(void **search_res, void *key, void *base, size_t count, size
 bool memory_rsearch(void **search_res, void *key, void *base, size_t count, size_t size, mem_compare_fn_t compare);
 bool memory_dump(void *ptr, size_t len, uintmax_t catbyte, uintmax_t column_mod2);
 bool memory_look(void *ptr, size_t struct_count, size_t struct_size, intmax_t list_bit_len[]);
+#define mem_list(...)                     ({ (intmax_t[]){__VA_ARGS__, 0}; })
 
 #if YAYA_MEMORY_MACRO_DEF
 #if YAYA_MEMORY_STATS_USE
@@ -109,6 +111,5 @@ bool memory_look(void *ptr, size_t struct_count, size_t struct_size, intmax_t li
 #define mem_dump(P)                       memory_dump((void*)(P), 0, 1, 16)
 #define mem_look(P, C, S, M)              memory_look((void*)(P), (size_t)(C), sizeof(S), M)
 #endif /*YAYA_MEMORY_MACRO_DEF*/
-#define mem_list(...)                     ({ (intmax_t[]){__VA_ARGS__, 0}; })
 
 #endif /*YAYA_MEMORY_H*/
