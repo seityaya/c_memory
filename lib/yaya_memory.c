@@ -5,13 +5,13 @@
 //SPDX-License-Identifier: LGPL-2.1-or-later
 //Copyright © 2022-2023 Seityagiya Terlekchi. All rights reserved.
 
+#include "yaya_memory.h"
+
 #include "inttypes.h"
 #include "malloc.h"
 #include "stdio.h"
 #include "stdlib.h"
 #include "string.h"
-
-#include "yaya_memory.h"
 
 #if YAYA_MEMORY_STATS_USE && !YAYA_MEMORY_STATS_OFF
 bool memory_stats_init(mem_stats_t **mem_stats)
@@ -77,7 +77,7 @@ bool memory_new(
         const size_t size)
 {
 #if YAYA_MEMORY_STATS_USE && YAYA_MEMORY_STATS_OFF
-    mem_stats = NULL;
+    (void)(mem_stats);
 #endif
 
     /*Указатели под структуру памяти*/
@@ -107,8 +107,9 @@ bool memory_new(
 
         size_t produce = malloc_usable_size(mem_new);
 
-        /*Зануление всего выделеного*/
-        memset(mem_new, 0x00, produce);
+        /*Зануление всего выделенного*/
+        memset(mem_new, 0x00, new_size_len + sizeof(mem_info_t));
+        memset(mem_new + (new_size_len + sizeof(mem_info_t)), YAYA_MEMORY_VALUE_AFTER_MEM, produce - (new_size_len + sizeof(mem_info_t)));
 
         /*Сохранение информации о количестве памяти*/
         mem_new->memory_request = new_size_len;
@@ -154,7 +155,7 @@ bool memory_new(
 #if YAYA_MEMORY_STATS_USE && !YAYA_MEMORY_STATS_OFF
         intptr_t diff_p = (intptr_t)(new_size_p) - (intptr_t)(old_size_p);
 #endif
-        /*Зануление хвоста выделеного*/
+        /*Зануление хвоста выделенного*/
         if(diff_r > 0){
             size_t diff = new_size_p - offsetof(mem_info_t, memory_ptr) - old_size_r;
             memset(mem_new->memory_ptr + old_size_r, 0x00, diff);
@@ -190,7 +191,7 @@ bool memory_del(
         void **ptr)
 {
 #if YAYA_MEMORY_STATS_USE && YAYA_MEMORY_STATS_OFF
-    mem_stats = NULL;
+    (void)(mem_stats);
 #endif
 
     /*Проверка, что указатели не NULL*/
@@ -220,7 +221,7 @@ bool memory_del(
     volatile uintptr_t size = mem->memory_produce;
     volatile uint8_t  *p    = (uint8_t*)(mem);
     while (size--){
-        *p++ = 0;
+        *(p++) = YAYA_MEMORY_VALUE_AFTER_MEM;
     }
 #endif
 
@@ -696,14 +697,14 @@ bool memory_look(void *ptr, size_t struct_count, size_t struct_size, intmax_t li
         {
             for(uintmax_t i = 0; i < struct_count; i++){
                 printf("| 0x%016" PRIXPTR " | ", (uintptr_t)(ptr) + (i * (uintptr_t)(struct_size)));
-                intmax_t sum = 0;
+                intmax_t offset = 0;
                 for(intmax_t s = 0; s < list_count; s++){
                     if(list_bit_len[s] > 0){
-                        uint64_t res = bit_sequence(ptr, (uintptr_t)(struct_size * __CHAR_BIT__ * i) + (uintptr_t)(sum), (uintmax_t)(list_bit_len[s]));
+                        uint64_t res = bit_sequence(ptr, (uintptr_t)(struct_size * __CHAR_BIT__ * i) + (uintptr_t)(offset), (uintmax_t)(list_bit_len[s]));
                         printf("%0*" PRIx64 " ", (int)(list_bit_len[s] / 4 + ((list_bit_len[s] < 4 || list_bit_len[s] % 4 > 0) ? 1 : 0)), res);
-                        sum += list_bit_len[s];
+                        offset += list_bit_len[s];
                     }else{
-                        sum += -list_bit_len[s];
+                        offset += -list_bit_len[s];
                     }
                 }
                 printf("|\n");
