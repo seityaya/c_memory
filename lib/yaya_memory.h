@@ -49,6 +49,10 @@ typedef struct mem_stats_t {
     size_t memory_call_del; //фактически удалено
 }mem_stats_t;
 
+#if YAYA_MEMORY_STATS_USE && YAYA_MEMORY_STATS_GLOBAL
+extern mem_stats_t mem_stats;
+#endif /*YAYA_MEMORY_STATS_GLOBAL*/
+
 #if YAYA_MEMORY_STATS_OFF
 #define memory_stats_init(A) true
 #define memory_stats_free(A) true
@@ -89,6 +93,7 @@ bool memory_bsearch(void **search_res, void *key, void *base, size_t count, size
 bool memory_rsearch(void **search_res, void *key, void *base, size_t count, size_t size, mem_compare_fn_t compare);
 bool memory_dump(void *ptr, size_t len, uintmax_t catbyte, uintmax_t column_mod2);
 bool memory_look(void *ptr, size_t struct_count, size_t struct_size, intmax_t list_bit_len[]);
+
 #define mem_list(...)                     ({ (intmax_t[]){__VA_ARGS__, 0}; })
 
 #if YAYA_MEMORY_MACRO_DEF

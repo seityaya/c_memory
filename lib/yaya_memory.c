@@ -13,6 +13,10 @@
 #include "stdlib.h"
 #include "string.h"
 
+#if YAYA_MEMORY_STATS_USE && YAYA_MEMORY_STATS_GLOBAL
+mem_stats_t mem_stats;
+#endif /*YAYA_MEMORY_STATS_GLOBAL*/
+
 #if YAYA_MEMORY_STATS_USE && !YAYA_MEMORY_STATS_OFF
 bool memory_stats_init(mem_stats_t **mem_stats)
 {
