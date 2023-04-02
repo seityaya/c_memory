@@ -41,7 +41,7 @@ bool memory_fill(void *ptr){
 void test_param() {
     printf("test_param\n");
 
-#if YAYA_MEMORY_STATS_USE
+#if YAYA_MEMORY_STATS_USE && !YAYA_MEMORY_STATS_GLOBAL
     mem_stats_t* mem_stats = NULL;
     if(memory_stats_init(&mem_stats)){
         printf("00 OK\n");
@@ -51,7 +51,7 @@ void test_param() {
 #endif
 
 
-#if YAYA_MEMORY_STATS_USE
+#if YAYA_MEMORY_STATS_USE && !YAYA_MEMORY_STATS_GLOBAL
 #if YAYA_MEMORY_MACRO_DEF
     if(!mem_new(mem_stats, NULL, NULL, 0, 0))
 #else
@@ -73,7 +73,7 @@ void test_param() {
 
     void *ptr = NULL;
 
-#if YAYA_MEMORY_STATS_USE
+#if YAYA_MEMORY_STATS_USE && !YAYA_MEMORY_STATS_GLOBAL
 #if YAYA_MEMORY_MACRO_DEF
     if(!mem_new(mem_stats, &ptr, NULL, 0, 0))
 #else
@@ -93,7 +93,7 @@ void test_param() {
     }
 
 
-#if YAYA_MEMORY_STATS_USE
+#if YAYA_MEMORY_STATS_USE && !YAYA_MEMORY_STATS_GLOBAL
 #if YAYA_MEMORY_MACRO_DEF
     if(!mem_new(mem_stats, &ptr, ptr, 0, 0))
 #else
@@ -113,7 +113,7 @@ void test_param() {
     }
 
 
-#if YAYA_MEMORY_STATS_USE
+#if YAYA_MEMORY_STATS_USE && !YAYA_MEMORY_STATS_GLOBAL
 #if YAYA_MEMORY_MACRO_DEF
     if(!mem_new(mem_stats, NULL, NULL, 1, sizeof(char)))
 #else
@@ -133,7 +133,7 @@ void test_param() {
     }
 
 
-#if YAYA_MEMORY_STATS_USE
+#if YAYA_MEMORY_STATS_USE && !YAYA_MEMORY_STATS_GLOBAL
 #if YAYA_MEMORY_MACRO_DEF
     if(!mem_new(mem_stats, NULL, ptr, 1, sizeof(char)))
 #else
@@ -153,7 +153,7 @@ void test_param() {
     }
 
 
-#if YAYA_MEMORY_STATS_USE
+#if YAYA_MEMORY_STATS_USE && !YAYA_MEMORY_STATS_GLOBAL
 #if YAYA_MEMORY_MACRO_DEF
     if(!mem_new(mem_stats, ptr, ptr, 1, sizeof(char)))
 #else
@@ -173,7 +173,7 @@ void test_param() {
     }
 
 
-#if YAYA_MEMORY_STATS_USE
+#if YAYA_MEMORY_STATS_USE && !YAYA_MEMORY_STATS_GLOBAL
 #if YAYA_MEMORY_MACRO_DEF
     if(!mem_del(mem_stats, ptr))
 #else
@@ -193,7 +193,7 @@ void test_param() {
     }
 
 
-#if YAYA_MEMORY_STATS_USE
+#if YAYA_MEMORY_STATS_USE && !YAYA_MEMORY_STATS_GLOBAL
 #if YAYA_MEMORY_MACRO_DEF
     if(!mem_del(mem_stats, &ptr))
 #else
@@ -213,7 +213,7 @@ void test_param() {
     }
 
 
-#if YAYA_MEMORY_STATS_USE
+#if YAYA_MEMORY_STATS_USE && !YAYA_MEMORY_STATS_GLOBAL
 #if YAYA_MEMORY_MACRO_DEF
     if(mem_new(mem_stats, &ptr, ptr, 1, sizeof(char)))
 #else
@@ -233,7 +233,7 @@ void test_param() {
     }
 
 
-#if YAYA_MEMORY_STATS_USE
+#if YAYA_MEMORY_STATS_USE && !YAYA_MEMORY_STATS_GLOBAL
 #if YAYA_MEMORY_MACRO_DEF
     if(mem_del(mem_stats, &ptr))
 #else
@@ -253,7 +253,7 @@ void test_param() {
     }
 
 
-#if YAYA_MEMORY_STATS_USE
+#if YAYA_MEMORY_STATS_USE && !YAYA_MEMORY_STATS_GLOBAL
 #if YAYA_MEMORY_MACRO_DEF
     if(!mem_del(mem_stats, &ptr))
 #else
@@ -274,6 +274,13 @@ void test_param() {
 
 
 #if YAYA_MEMORY_STATS_USE
+#if YAYA_MEMORY_STATS_GLOBAL
+    if(memory_stats_show()){
+        printf("12 OK\n");
+    }else{
+        printf("ER\n");
+    }
+#else
     if(memory_stats_show(mem_stats)){
         printf("12 OK\n");
     }else{
@@ -292,6 +299,7 @@ void test_param() {
         printf("ER\n");
     }
 #endif
+#endif
 
     printf("\n");
     fflush(stdout);
@@ -299,7 +307,7 @@ void test_param() {
 
 void test_dump(){
     printf("test_dump\n");
-#if YAYA_MEMORY_STATS_USE
+#if YAYA_MEMORY_STATS_USE && !YAYA_MEMORY_STATS_GLOBAL
     mem_stats_t* mem_stats = NULL;
     if(!memory_stats_init(&mem_stats)){
         return;
@@ -307,7 +315,8 @@ void test_dump(){
 #endif
 
     void *ptr = NULL;
-#if YAYA_MEMORY_STATS_USE
+
+#if YAYA_MEMORY_STATS_USE && !YAYA_MEMORY_STATS_GLOBAL
 #if YAYA_MEMORY_MACRO_DEF
     mem_new(mem_stats, &ptr, ptr, 16, sizeof(char));
 #else
@@ -323,7 +332,7 @@ void test_dump(){
 
     memory_dump(ptr, 0, 1, 16);
 
-#if YAYA_MEMORY_STATS_USE
+#if YAYA_MEMORY_STATS_USE && !YAYA_MEMORY_STATS_GLOBAL
 #if YAYA_MEMORY_MACRO_DEF
     mem_new(mem_stats, &ptr, ptr, 17, sizeof(char));
 #else
@@ -339,7 +348,7 @@ void test_dump(){
 
     memory_dump(ptr, 0, 1, 16);
 
-#if YAYA_MEMORY_STATS_USE
+#if YAYA_MEMORY_STATS_USE && !YAYA_MEMORY_STATS_GLOBAL
 #if YAYA_MEMORY_MACRO_DEF
     mem_new(mem_stats, &ptr, ptr, 42, sizeof(char));
 #else
@@ -367,7 +376,7 @@ void test_dump(){
     memory_dump(ptr, 0, 1, 16);
 #endif
 
-#if YAYA_MEMORY_STATS_USE
+#if YAYA_MEMORY_STATS_USE && !YAYA_MEMORY_STATS_GLOBAL
 #if YAYA_MEMORY_MACRO_DEF
     mem_new(mem_stats, &ptr, ptr, 35, sizeof(char));
 #else
@@ -397,7 +406,7 @@ void test_dump(){
 
     printf("\n");
 
-#if YAYA_MEMORY_STATS_USE
+#if YAYA_MEMORY_STATS_USE && !YAYA_MEMORY_STATS_GLOBAL
 #if YAYA_MEMORY_MACRO_DEF
     mem_new(mem_stats, &ptr, ptr, 33, sizeof(char));
 #else
@@ -422,7 +431,7 @@ void test_dump(){
     memory_dump(ptr, 0, 1, 64);
 
     void *ptr_save = ptr;
-#if YAYA_MEMORY_STATS_USE
+#if YAYA_MEMORY_STATS_USE && !YAYA_MEMORY_STATS_GLOBAL
 #if YAYA_MEMORY_MACRO_DEF
     mem_del(mem_stats, &ptr);
 #else
@@ -439,9 +448,14 @@ void test_dump(){
     memory_dump(ptr_save, 33, 1, 64);
 
 #if YAYA_MEMORY_STATS_USE
+#if YAYA_MEMORY_STATS_GLOBAL
+    memory_stats_show();
+#else
     memory_stats_show(mem_stats);
     memory_stats_free(&mem_stats);
 #endif
+#endif
+
     printf("\n");
     fflush(stdout);
 }
@@ -461,7 +475,7 @@ void test_look(){
         uint32_t f1:21;
         uint32_t f2:11;
         void*    p;
-    }S;
+    } S;
 
     int a = 0;
     printf("%p\n", &a);
@@ -552,7 +566,7 @@ void test_shuf() {
     const int8_t count_test = 127;
     int8_t *mas = NULL;
 
-#if YAYA_MEMORY_STATS_USE
+#if YAYA_MEMORY_STATS_USE && !YAYA_MEMORY_STATS_GLOBAL
 #if YAYA_MEMORY_MACRO_DEF
     mem_new(NULL, &mas, NULL, count_mas, sizeof(int8_t));
 #else
@@ -607,7 +621,7 @@ void test_shuf() {
         printf("ER\n");
     }
 
-#if YAYA_MEMORY_STATS_USE
+#if YAYA_MEMORY_STATS_USE && !YAYA_MEMORY_STATS_GLOBAL
 #if YAYA_MEMORY_MACRO_DEF
     mem_del(NULL, &mas);
 #else
@@ -635,7 +649,7 @@ void test_sort() {
     const int8_t count_mas = 10;
     int8_t *mas = {0};
 
-#if YAYA_MEMORY_STATS_USE
+#if YAYA_MEMORY_STATS_USE && !YAYA_MEMORY_STATS_GLOBAL
 #if YAYA_MEMORY_MACRO_DEF
     mem_new(NULL, &mas, NULL, count_mas, sizeof(int8_t));
 #else
@@ -674,7 +688,7 @@ void test_sort() {
         printf("ER\n");
     }
 
-#if YAYA_MEMORY_STATS_USE
+#if YAYA_MEMORY_STATS_USE && !YAYA_MEMORY_STATS_GLOBAL
 #if YAYA_MEMORY_MACRO_DEF
     mem_del(NULL, &mas);
 #else
@@ -698,7 +712,7 @@ void test_search() {
     const int8_t count_mas = 10;
 
     int8_t *mas = NULL;
-#if YAYA_MEMORY_STATS_USE
+#if YAYA_MEMORY_STATS_USE && !YAYA_MEMORY_STATS_GLOBAL
 #if YAYA_MEMORY_MACRO_DEF
     mem_new(NULL, &mas, NULL, count_mas, sizeof(int8_t));
 #else
@@ -852,7 +866,7 @@ void test_search() {
         printf("ER\n");
     }
 
-#if YAYA_MEMORY_STATS_USE
+#if YAYA_MEMORY_STATS_USE && !YAYA_MEMORY_STATS_GLOBAL
 #if YAYA_MEMORY_MACRO_DEF
     mem_del(NULL, &mas);
 #else

@@ -13,31 +13,34 @@
 #include "stdbool.h"
 #include "stddef.h"
 
+
 #ifndef YAYA_MEMORY_STATS_USE
 #   define YAYA_MEMORY_STATS_USE 0
 #endif /*YAYA_MEMORY_STATS_USE*/
 
-#if !YAYA_MEMORY_STATS_USE
+#if YAYA_MEMORY_STATS_USE
 #   ifndef YAYA_MEMORY_STATS_OFF
 #       define YAYA_MEMORY_STATS_OFF 0
 #   endif /*YAYA_MEMORY_STATS_OFF*/
 
 #   ifndef YAYA_MEMORY_STATS_GLOBAL
-#       define YAYA_MEMORY_STATS_GLOBAL 0 /* TODO */
+#       define YAYA_MEMORY_STATS_GLOBAL 0
 #   endif /*YAYA_MEMORY_STATS_GLOBAL*/
 #endif /*YAYA_MEMORY_STATS_USE*/
 
 #ifndef YAYA_MEMORY_MACRO_DEF
-#   define YAYA_MEMORY_MACRO_DEF 0
+#   define YAYA_MEMORY_MACRO_DEF 1
 #endif /*YAYA_MEMORY_MACRO_DEF*/
 
-#ifndef YAYA_MEMORY_FILL_NULL_AFTER_FREE
-#   define YAYA_MEMORY_FILL_NULL_AFTER_FREE 1
+#ifndef YAYA_MEMORY_FILL_AFTER_FREE
+#   define YAYA_MEMORY_FILL_AFTER_FREE 1
 #endif /*YAYA_MEMORY_FILL_NULL_AFTER_FREE*/
 
 #ifndef YAYA_MEMORY_VALUE_AFTER_MEM
 #   define YAYA_MEMORY_VALUE_AFTER_MEM 0x88
 #endif /*YAYA_MEMORY_VALUE_AFTER_MEM*/
+
+
 
 #if YAYA_MEMORY_STATS_USE
 typedef struct mem_stats_t {
@@ -49,10 +52,10 @@ typedef struct mem_stats_t {
     size_t memory_call_del; //фактически удалено
 }mem_stats_t;
 
-#if YAYA_MEMORY_STATS_USE && YAYA_MEMORY_STATS_GLOBAL
-extern mem_stats_t mem_stats;
-#endif /*YAYA_MEMORY_STATS_GLOBAL*/
-
+#if YAYA_MEMORY_STATS_GLOBAL
+extern mem_stats_t mem_stats_lib_global;
+bool   memory_stats_show();
+#else
 #if YAYA_MEMORY_STATS_OFF
 #define memory_stats_init(A) true
 #define memory_stats_free(A) true
@@ -60,9 +63,12 @@ extern mem_stats_t mem_stats;
 #else
 bool memory_stats_init(mem_stats_t **mem_stats);
 bool memory_stats_free(mem_stats_t **mem_stats);
-bool memory_stats_show(mem_stats_t *mem_stats);
+bool memory_stats_show(mem_stats_t  *mem_stats);
 #endif /*YAYA_MEMORY_STATS_OFF*/
+#endif /*YAYA_MEMORY_STATS_GLOBAL*/
 #endif /*YAYA_MEMORY_STATS_USE*/
+
+
 
 typedef struct mem_info_t {
     size_t memory_request;                       //запросили
@@ -70,7 +76,7 @@ typedef struct mem_info_t {
     alignas(max_align_t) uint8_t  memory_ptr[];  //указатель на начало
 }mem_info_t;
 
-#if YAYA_MEMORY_STATS_USE
+#if YAYA_MEMORY_STATS_USE && !YAYA_MEMORY_STATS_GLOBAL
 bool   memory_new(mem_stats_t *mem_stats, void **ptr, void *old_ptr, const size_t count, const size_t size);
 bool   memory_del(mem_stats_t *mem_stats, void **ptr);
 #else
@@ -96,8 +102,10 @@ bool memory_look(void *ptr, size_t struct_count, size_t struct_size, intmax_t li
 
 #define mem_list(...)                     ({ (intmax_t[]){__VA_ARGS__, 0}; })
 
+
+
 #if YAYA_MEMORY_MACRO_DEF
-#if YAYA_MEMORY_STATS_USE
+#if YAYA_MEMORY_STATS_USE && !YAYA_MEMORY_STATS_GLOBAL
 #define mem_new(I, N, O, C, S)            memory_new((I), (void**)(N), (void*)(O), (size_t)(C), (size_t)(S))
 #define mem_del(I, N)                     memory_del((I), (void**)(N))
 #else
