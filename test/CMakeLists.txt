@@ -17,7 +17,7 @@ project(${PROJECT_NAME})
 
 add_definitions(-DYAYA_MEMORY_STATS_USE=1)
 add_definitions(-DYAYA_MEMORY_STATS_GLOBAL=1)
-add_definitions(-DYAYA_MEMORY_STATS_OFF=0)
+add_definitions(-DYAYA_MEMORY_STATS_ON=1)
 add_definitions(-DYAYA_MEMORY_MACRO_DEF=1)
 
 add_executable(

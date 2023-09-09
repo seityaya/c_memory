@@ -7,14 +7,11 @@
 
 #include "stdio.h"
 #include "inttypes.h"
-#include "malloc.h"
-#include "stddef.h"
-#include "stdlib.h"
-#include "string.h"
 
 #include "yaya_memory.h"
+#include "yaya_mem.h"
 
-bool memory_fill(void *ptr){
+bool test_memory_fill(void *ptr){
     /*Проверка, что указатель не NULL*/
     if(ptr == NULL){
         printf("ERROR *POINTER\n"); fflush(stdout);
@@ -72,6 +69,7 @@ void test_param() {
 
 
     void *ptr = NULL;
+
 
 #if YAYA_MEMORY_STATS_USE && !YAYA_MEMORY_STATS_GLOBAL
 #if YAYA_MEMORY_MACRO_DEF
@@ -273,28 +271,35 @@ void test_param() {
     }
 
 
+    if(ptr == NULL){
+        printf("12 OK\n");
+    }else{
+        printf("ER\n");
+    }
+
+
 #if YAYA_MEMORY_STATS_USE
 #if YAYA_MEMORY_STATS_GLOBAL
     if(memory_stats_show()){
-        printf("12 OK\n");
+        printf("13 OK\n");
     }else{
         printf("ER\n");
     }
 #else
     if(memory_stats_show(mem_stats)){
-        printf("12 OK\n");
-    }else{
-        printf("ER\n");
-    }
-
-    if(memory_stats_free(&mem_stats)){
         printf("13 OK\n");
     }else{
         printf("ER\n");
     }
 
-    if(mem_stats == NULL){
+    if(memory_stats_free(&mem_stats)){
         printf("14 OK\n");
+    }else{
+        printf("ER\n");
+    }
+
+    if(mem_stats == NULL){
+        printf("15 OK\n");
     }else{
         printf("ER\n");
     }
@@ -368,7 +373,7 @@ void test_dump(){
     memory_dump(ptr, 0, 1, 16);
 #endif
 
-    memory_fill(ptr);
+    test_memory_fill(ptr);
 
 #if YAYA_MEMORY_MACRO_DEF
     mem_dump(ptr);
@@ -396,7 +401,7 @@ void test_dump(){
     memory_dump(ptr, 0, 1, 16);
 #endif
 
-    memory_fill(ptr);
+    test_memory_fill(ptr);
 
 #if YAYA_MEMORY_MACRO_DEF
     mem_dump(ptr);
@@ -420,7 +425,7 @@ void test_dump(){
 #endif
 #endif
 
-    memory_fill(ptr);
+    test_memory_fill(ptr);
 
     memory_dump(ptr, 0, 1, 4);
     memory_dump(ptr, 0, 4, 2);
@@ -494,7 +499,42 @@ void test_look(){
     memory_look(&t, 5, sizeof(S), mem_list(3, 1, 4, -8, 16, 8, 8, 16, 8, -24, 32, 21, 11, 32, 64));
 
 #if YAYA_MEMORY_MACRO_DEF
-    mem_look(&t, 5, S, mem_list(3, 1, 4, -8, 16, 8, 8, 16, 8, -24, 32, 21, 11, 32, 64));
+    mem_look(&t, 5, sizeof(S), mem_list(3, 1, 4, -8, 16, 8, 8, 16, 8, -24, 32, 21, 11, 32, 64));
+#endif
+
+    void *ptr = NULL;
+
+#if YAYA_MEMORY_STATS_USE && !YAYA_MEMORY_STATS_GLOBAL
+
+    mem_stats_t* mem_stats = NULL;
+    memory_stats_init(&mem_stats);
+#if YAYA_MEMORY_MACRO_DEF
+    mem_new(mem_stats, &ptr, ptr, 17, sizeof(char));
+    mem_fill(ptr, 0xff);
+    mem_look(ptr, 1, mem_size(ptr), mem_list(1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16));
+    mem_del(mem_stats, &ptr);
+#else
+    memory_new(mem_stats, &ptr, ptr, 17, sizeof(char));
+    memory_fill(ptr, 0xff);
+    memory_look(ptr, 1, memory_size(ptr), mem_list(1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16));
+    memory_del(mem_stats, &ptr);
+#endif
+    memory_stats_free(&mem_stats);
+
+#else
+#if YAYA_MEMORY_MACRO_DEF
+    mem_new(&ptr, ptr, 17, sizeof(char));
+    mem_fill(ptr, 0xff);
+    mem_look(ptr, 1, mem_size(ptr), mem_list(1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16));
+    mem_del(&ptr);
+#else
+
+    memory_new(&ptr, ptr, 17, sizeof(char));
+    memory_fill(ptr, 0xff);
+    memory_look(ptr, 1, memory_size(ptr), mem_list(1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16));
+    memory_del(&ptr);
+
+#endif
 #endif
 
     printf("\n");
