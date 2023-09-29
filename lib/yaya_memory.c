@@ -9,17 +9,17 @@
 
 #if YAYA_MEMORY_STATS_USE
 #if YAYA_MEMORY_STATS_GLOBAL
-mem_stats_t mem_stats_lib_global = {0};
+memory_stats_t mem_stats_lib_global = {0};
 #endif /*YAYA_MEMORY_STATS_GLOBAL*/
 
 bool memory_stats_show(
         #if !YAYA_MEMORY_STATS_GLOBAL
-        mem_stats_t *mem_stats
+        memory_stats_t *mem_stats
         #endif
         )
 {
 #if YAYA_MEMORY_STATS_GLOBAL
-    mem_stats_t *mem_stats = &mem_stats_lib_global;
+    memory_stats_t *mem_stats = &mem_stats_lib_global;
 #endif /*YAYA_MEMORY_STATS_GLOBAL*/
 
     if(mem_stats != NULL){
@@ -43,15 +43,15 @@ bool memory_stats_show(
     return false;
 }
 
-#if !YAYA_MEMORY_STATS_GLOBAL
-bool memory_stats_init(mem_stats_t **mem_stats)
+#if YAYA_MEMORY_STATS_ON && !YAYA_MEMORY_STATS_GLOBAL
+bool memory_stats_init(memory_stats_t **mem_stats)
 {
     if(mem_stats == NULL){
         return false;
     }
 
     if(*mem_stats == NULL){
-        *mem_stats = (mem_stats_t*)malloc(sizeof(mem_stats_t));
+        *mem_stats = (memory_stats_t*)malloc(sizeof(memory_stats_t));
         if(*mem_stats == NULL){
             return false;
         }
@@ -63,7 +63,7 @@ bool memory_stats_init(mem_stats_t **mem_stats)
     return false;
 }
 
-bool memory_stats_free(mem_stats_t **mem_stats)
+bool memory_stats_free(memory_stats_t **mem_stats)
 {
     if(mem_stats != NULL){
         free(*mem_stats);
@@ -77,7 +77,7 @@ bool memory_stats_free(mem_stats_t **mem_stats)
 
 bool memory_new(
         #if YAYA_MEMORY_STATS_USE && !YAYA_MEMORY_STATS_GLOBAL
-        mem_stats_t *mem_stats,
+        memory_stats_t *mem_stats,
         #endif
         void **ptr,
         void *old_ptr,
@@ -87,7 +87,7 @@ bool memory_new(
 #if YAYA_MEMORY_STATS_USE
 #if YAYA_MEMORY_STATS_GLOBAL
 #if YAYA_MEMORY_STATS_ON
-    mem_stats_t *mem_stats = &mem_stats_lib_global;
+    memory_stats_t *mem_stats = &mem_stats_lib_global;
 #endif /*YAYA_MEMORY_STATS_ON*/
 #else
     (void)(mem_stats);
@@ -95,8 +95,8 @@ bool memory_new(
 #endif /*YAYA_MEMORY_STATS_USE*/
 
     /*Указатели под структуру памяти*/
-    mem_info_t *mem_old = NULL;
-    mem_info_t *mem_new = NULL;
+    memory_t *mem_old = NULL;
+    memory_t *mem_new = NULL;
 
     /*Проверка, что запрошено не нулевой размер памяти*/
     const size_t new_size_len = (count * size);
@@ -112,7 +112,7 @@ bool memory_new(
     /*Если память не инициализирована, то указатель на предыдущую память NULL*/
     if(old_ptr == NULL){
         /*Выделение памяти на хранение информации и указателя*/
-        mem_new = malloc(new_size_len + sizeof(mem_info_t));
+        mem_new = malloc(new_size_len + sizeof(memory_t));
 
         /*Проверка, что память выделилась*/
         if(mem_new == NULL){
@@ -126,7 +126,7 @@ bool memory_new(
 
 #if YAYA_MEMORY_FILL_AFTER_MEM
         /*Установка значения сверх выделенного*/
-        memset(mem_new->memory_ptr + new_size_len, YAYA_MEMORY_VALUE_AFTER_MEM, produce - new_size_len - sizeof(mem_info_t));
+        memset(mem_new->memory_ptr + new_size_len, YAYA_MEMORY_VALUE_AFTER_MEM, produce - new_size_len - sizeof(memory_t));
 #endif
 
         /*Сохранение информации о количестве памяти*/
@@ -141,7 +141,7 @@ bool memory_new(
         if(mem_stats != NULL){
             mem_stats->memory_call_new++;
             mem_stats->memory_request += mem_new->memory_request;
-            mem_stats->memory_produce += mem_new->memory_produce - sizeof(mem_info_t);
+            mem_stats->memory_produce += mem_new->memory_produce - sizeof(memory_t);
         }
 #endif
     }
@@ -149,7 +149,7 @@ bool memory_new(
     else
     {
         /*Помещаем указатель со смещением*/
-        mem_old = old_ptr - sizeof(mem_info_t);
+        mem_old = old_ptr - sizeof(memory_t);
 
         /*Запоминаем сколько было выделено и сколько запрошено*/
         size_t old_size_r = mem_old->memory_request;
@@ -157,7 +157,7 @@ bool memory_new(
         size_t old_size_p = mem_old->memory_produce;
 #endif
         /*Перераспределяем память*/
-        mem_new = realloc(mem_old, new_size_len + sizeof(mem_info_t));
+        mem_new = realloc(mem_old, new_size_len + sizeof(memory_t));
 
         /*Проверка, что память выделилась*/
         if(mem_new == NULL){
@@ -180,7 +180,7 @@ bool memory_new(
 #if YAYA_MEMORY_FILL_AFTER_MEM
         /*Установка значения сверх выделенного*/
         if(diff_r < 0){
-            memset(mem_new->memory_ptr + new_size_r, YAYA_MEMORY_VALUE_AFTER_MEM, new_size_p - new_size_r - sizeof(mem_info_t));
+            memset(mem_new->memory_ptr + new_size_r, YAYA_MEMORY_VALUE_AFTER_MEM, new_size_p - new_size_r - sizeof(memory_t));
         }
 #endif
 
@@ -205,13 +205,13 @@ bool memory_new(
 
 bool memory_del(
         #if YAYA_MEMORY_STATS_USE && !YAYA_MEMORY_STATS_GLOBAL
-        mem_stats_t *mem_stats,
+        memory_stats_t *mem_stats,
         #endif
         void **ptr)
 {
 #if YAYA_MEMORY_STATS_USE && YAYA_MEMORY_STATS_ON
 #if YAYA_MEMORY_STATS_GLOBAL
-    mem_stats_t *mem_stats = &mem_stats_lib_global;
+    memory_stats_t *mem_stats = &mem_stats_lib_global;
 #else
     (void)(mem_stats);
 #endif /*YAYA_MEMORY_STATS_GLOBAL*/
@@ -227,10 +227,10 @@ bool memory_del(
     }
 
     /*Указатели под структуру памяти*/
-    mem_info_t *mem = NULL;
+    memory_t *mem = NULL;
 
     /*Помещаем указатель со смещением*/
-    mem = *ptr - offsetof(mem_info_t, memory_ptr);
+    mem = *ptr - offsetof(memory_t, memory_ptr);
 
 #if YAYA_MEMORY_STATS_USE && YAYA_MEMORY_STATS_ON
     /*Сохранение статистики*/
@@ -240,7 +240,7 @@ bool memory_del(
     }
 #endif
 
-#if YAYA_MEMORY_FILL_AFTER_FREE
+#if YAYA_MEMORY_FILL_BEFORE_FREE
     volatile size_t  volsize = mem->memory_produce;
     volatile uint8_t *volptr = (uint8_t*)(mem);
     while (volsize--){
@@ -263,10 +263,10 @@ bool memory_zero(void *ptr)
     }
 
     /*Указатель под структуру памяти*/
-    mem_info_t *mem_info = NULL;
+    memory_t *mem_info = NULL;
 
     /*Помещаем указатель со смещением*/
-    mem_info = ptr - offsetof(mem_info_t, memory_ptr);
+    mem_info = ptr - offsetof(memory_t, memory_ptr);
 
     /*Сохраняем значения*/
     volatile size_t  volsize = mem_info->memory_request;
@@ -287,10 +287,10 @@ bool memory_fill(void *ptr, uint8_t value)
     }
 
     /*Указатель под структуру памяти*/
-    mem_info_t *mem_info = NULL;
+    memory_t *mem_info = NULL;
 
     /*Помещаем указатель со смещением*/
-    mem_info = ptr - offsetof(mem_info_t, memory_ptr);
+    mem_info = ptr - offsetof(memory_t, memory_ptr);
 
     /*Сохраняем значения*/
     volatile size_t  volsize = mem_info->memory_request;
@@ -311,10 +311,10 @@ size_t memory_size(void *ptr)
     }
 
     /*Указатель под структуру памяти*/
-    mem_info_t *mem_info = NULL;
+    memory_t *mem_info = NULL;
 
     /*Помещаем указатель со смещением*/
-    mem_info = ptr - offsetof(mem_info_t, memory_ptr);
+    mem_info = ptr - offsetof(memory_t, memory_ptr);
 
     /*Возвращаем размер запрошеной памяти*/
     return mem_info->memory_request;
@@ -363,7 +363,7 @@ size_t memory_step(void* ptr_beg, void* ptr_end, size_t size)
     return (size_t)(dist / (ptrdiff_t)(size));
 }
 
-bool memory_shuf(void *base, size_t count, size_t size, unsigned int seed, mem_seed_fn_t set_seed, mem_rand_fn_t get_rand)
+bool memory_shuf(void *base, size_t count, size_t size, unsigned int seed, memory_func_seed_t set_seed, memory_func_rand_t get_rand)
 {
     /*Проверка, что указатели не NULL*/
     if(base == NULL){
@@ -390,7 +390,7 @@ bool memory_shuf(void *base, size_t count, size_t size, unsigned int seed, mem_s
     return true;
 }
 
-bool memory_sort(void *base, size_t count, size_t size, mem_compare_fn_t compare)
+bool memory_sort(void *base, size_t count, size_t size, memory_func_comp_t compare)
 {
     /*Проверка, что указатели не NULL*/
     if(base == NULL){
@@ -411,7 +411,7 @@ bool memory_sort(void *base, size_t count, size_t size, mem_compare_fn_t compare
     return true;
 }
 
-bool memory_bsearch(void **search_res, void *key, void *base, size_t count, size_t size, mem_compare_fn_t compare)
+bool memory_bsearch(void **search_res, void *key, void *base, size_t count, size_t size, memory_func_comp_t compare)
 {
     /*Проверка, что указатели не NULL*/
     if(search_res == NULL){
@@ -438,7 +438,7 @@ bool memory_bsearch(void **search_res, void *key, void *base, size_t count, size
     return false;
 }
 
-bool memory_rsearch(void** search_res, void *key, void *base, size_t count, size_t size, mem_compare_fn_t compare)
+bool memory_rsearch(void** search_res, void *key, void *base, size_t count, size_t size, memory_func_comp_t compare)
 {
     /*Проверка, что указатели не NULL*/
     if(search_res == NULL){
@@ -483,7 +483,7 @@ bool memory_dump(void *ptr, size_t len, uintmax_t catbyte, uintmax_t column)
     }
 
     if(len == 0){
-        mem_info_t *mem = ptr - offsetof(mem_info_t, memory_ptr);
+        memory_t *mem = ptr - offsetof(memory_t, memory_ptr);
         ptr = mem->memory_ptr;
         len = mem->memory_request;
     }

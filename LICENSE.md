@@ -14,9 +14,9 @@
     Creation Date          : YYYY.MM.DD
     License Link           : http://opensource.org/licenses/License
     SPDX-License-Identifier: LicenseCode
-    Copyright © YYYY Author. All rights reserved.
+    Copyright © YYYY-YYYY Author. All rights reserved.
     
     Other maintainers via line break:
     Copyright © YYYY, YYYY Maintainer
-    Copyright © YYYY-YYYY, YYYY Jane Doe
-    Copyright © YYYY-YYYY Acme Corporation. Contacts: <acme@example.com>
+    Copyright © YYYY-YYYY, YYYY Maintainer Contacts:<maintainer@maintainer.com>
+    Copyright © YYYY-YYYY Maintainer Corporation. Contacts: <maintainer@maintainer.com>

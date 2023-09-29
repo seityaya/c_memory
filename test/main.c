@@ -19,18 +19,18 @@ bool test_memory_fill(void *ptr){
     }
 
     /*Указатели под структуру памяти*/
-    mem_info_t *mem = NULL;
+    memory_t *mem = NULL;
 
     /*Помещаем указатель со смещением*/
-    mem = ptr - offsetof(mem_info_t, memory_ptr);
+    mem = ptr - offsetof(memory_t, memory_ptr);
 
     size_t produce = malloc_usable_size(mem);
 
     /*Заполнение памяти*/
-    memset(mem->memory_ptr, 0x11, produce - offsetof(mem_info_t, memory_ptr));
+    memset(mem->memory_ptr, 0x11, produce - offsetof(memory_t, memory_ptr));
     memset(mem->memory_ptr, 0xff, 1);
     memset(&mem->memory_ptr[mem->memory_request - 1], 0xff, 1);
-    memset(&mem->memory_ptr[mem->memory_request], 0x88, produce - mem->memory_request - offsetof(mem_info_t, memory_ptr));
+    memset(&mem->memory_ptr[mem->memory_request], 0x88, produce - mem->memory_request - offsetof(memory_t, memory_ptr));
 
     return true;
 }
@@ -496,10 +496,10 @@ void test_look(){
     memory_dump(t, sizeof(S) * 5, 1, 16);
 
     memory_look(&t, 5, sizeof(S), ({ (intmax_t[]) { 3, 1, 4, 8, 16, 8, 8, 16, 8, 24, 32, 21, 11, 32, sizeof(void*) * __CHAR_BIT__, 0}; }) );
-    memory_look(&t, 5, sizeof(S), mem_list(3, 1, 4, -8, 16, 8, 8, 16, 8, -24, 32, 21, 11, 32, 64));
+    memory_look(&t, 5, sizeof(S), memory_list(3, 1, 4, -8, 16, 8, 8, 16, 8, -24, 32, 21, 11, 32, 64));
 
 #if YAYA_MEMORY_MACRO_DEF
-    mem_look(&t, 5, sizeof(S), mem_list(3, 1, 4, -8, 16, 8, 8, 16, 8, -24, 32, 21, 11, 32, 64));
+    mem_look(&t, 5, sizeof(S), memory_list(3, 1, 4, -8, 16, 8, 8, 16, 8, -24, 32, 21, 11, 32, 64));
 #endif
 
     void *ptr = NULL;
@@ -511,12 +511,12 @@ void test_look(){
 #if YAYA_MEMORY_MACRO_DEF
     mem_new(mem_stats, &ptr, ptr, 17, sizeof(char));
     mem_fill(ptr, 0xff);
-    mem_look(ptr, 1, mem_size(ptr), mem_list(1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16));
+    mem_look(ptr, 1, mem_size(ptr), memory_list(1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16));
     mem_del(mem_stats, &ptr);
 #else
     memory_new(mem_stats, &ptr, ptr, 17, sizeof(char));
     memory_fill(ptr, 0xff);
-    memory_look(ptr, 1, memory_size(ptr), mem_list(1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16));
+    memory_look(ptr, 1, memory_size(ptr), memory_list(1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16));
     memory_del(mem_stats, &ptr);
 #endif
     memory_stats_free(&mem_stats);
@@ -525,13 +525,13 @@ void test_look(){
 #if YAYA_MEMORY_MACRO_DEF
     mem_new(&ptr, ptr, 17, sizeof(char));
     mem_fill(ptr, 0xff);
-    mem_look(ptr, 1, mem_size(ptr), mem_list(1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16));
+    mem_look(ptr, 1, mem_size(ptr), memory_list(1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16));
     mem_del(&ptr);
 #else
 
     memory_new(&ptr, ptr, 17, sizeof(char));
     memory_fill(ptr, 0xff);
-    memory_look(ptr, 1, memory_size(ptr), mem_list(1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16));
+    memory_look(ptr, 1, memory_size(ptr), memory_list(1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16));
     memory_del(&ptr);
 
 #endif
